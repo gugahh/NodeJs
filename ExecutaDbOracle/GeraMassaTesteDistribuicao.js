@@ -1,5 +1,20 @@
 const oracledb = require('oracledb');
 
+var myArgs = process.argv.slice(2);
+console.log('myArgs: ', myArgs);
+var p_usuario;
+var p_senha;
+
+if (!Array.isArray(myArgs) || myArgs.length != 2) {
+  console.error("Devem ser informados usuario e senha (do banco) como parametros.");
+  process.exit();
+}
+
+p_usuario = myArgs[0];
+p_senha = myArgs[1];
+
+console.log("\nUsuario: \t" + p_usuario + "\nSenha: \t\t(Foi atribuída)."  + "\n");
+
 async function run() {
 
   let connection;
@@ -8,8 +23,8 @@ async function run() {
 
     connection = await oracledb.getConnection(
             { 
-                user: "TJRJ", 
-                password: "PASSWORD",
+                user: p_usuario, 
+                password: p_senha,
                 connectionString: "10.0.251.32/CORR" 
             }
         );
