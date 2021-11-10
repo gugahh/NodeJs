@@ -33,19 +33,28 @@ async function run() {
 
 
     result = await connection.execute(
-        `Select SYSDATE From DUAL`,
+        `Select count(*) as quant
+        from TJRJ_MP_PJE_ORGAO_JULGADOR mpoj 
+        where MPOJ.TJPG_DT_IMPLANTACAO is not null`,
         [],
         { resultSet: true, outFormat: oracledb.OUT_FORMAT_OBJECT });
   
       const rs = result.resultSet;
       let row;
+
+      row = await rs.getRow().
   
+      /*
       while ((row = await rs.getRow())) {
-        if (row.DONE)
-          console.log(row);
-        else
-          console.log(row);
+        if (row.QUANT > 30) {
+          console.log("Mais que 30 registros!");
+        }
+        else {
+          console.log("Aparentemente ainda nao executou.");
+        }
+        console.log(row);
       }
+      */
   
       await rs.close();
 
