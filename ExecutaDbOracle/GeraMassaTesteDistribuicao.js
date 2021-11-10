@@ -42,9 +42,9 @@ async function run() {
   
       while ((row = await rs.getRow())) {
         if (row.DONE)
-          console.log(row.DESCRIPTION, "is done");
+          console.log(row);
         else
-          console.log(row.DESCRIPTION, "is NOT done");
+          console.log(row);
       }
   
       await rs.close();
