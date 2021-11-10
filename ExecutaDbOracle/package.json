@@ -1,0 +1,14 @@
+{
+  "name": "GeraMassaTesteDistribuicao",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GeraMassaTesteDistribuicao",
+  "keywords": [
+    "myapp"
+  ],
+  "dependencies": {
+    "oracledb": "^5.1.0"
+  },
+  "author": "Gustavo Santos",
+  "license": "MIT"
+}
