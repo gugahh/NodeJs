@@ -1,19 +1,28 @@
 const oracledb = require('oracledb');
 
 var myArgs = process.argv.slice(2);
-console.log('myArgs: ', myArgs);
+// console.log('myArgs: ', myArgs);
+
+var p_conn_string
 var p_usuario;
 var p_senha;
 
-if (!Array.isArray(myArgs) || myArgs.length != 2) {
-  console.error("Devem ser informados usuario e senha (do banco) como parametros.");
+console.log("\n===== Gerador de Massa de Teste de Distribuicao =====");
+
+// Obtendo definicoes de Banco de Dados a partir da linha de comando.
+if (!Array.isArray(myArgs) || myArgs.length != 3) {
+  console.error("\n====Erro!====");
+  console.error("* Devem ser informados String de Conexao, usuario e senha como parametros.");
+  console.error("* Obs: Nao utilize espacos na definicao da String de Conexao.\n");
   process.exit();
 }
 
-p_usuario = myArgs[0];
-p_senha = myArgs[1];
+p_conn_string = myArgs[0];
+p_usuario = myArgs[1];
+p_senha = myArgs[2];
 
-console.log("\nUsuario: \t" + p_usuario + "\nSenha: \t\t(Foi atribuída)."  + "\n");
+console.log("\nString de Conexão: \t" + p_conn_string);
+console.log("Usuario: \t\t" + p_usuario + "\nSenha: \t\t\t(Foi atribuída)."  + "\n");
 
 async function run() {
 
@@ -25,22 +34,21 @@ async function run() {
             { 
                 user: p_usuario, 
                 password: p_senha,
-                connectionString: "10.0.251.32/CORR" 
+                connectionString: p_conn_string
             }
         );
 
     console.log("Conectou ao BD Oracle com sucesso.");
 
     var quant = await obtemQuantOJCadastrados(connection);
+    console.log("quant Orgaos Julgadores: " + quant );
 
     if (quant > 30) {
       console.log("Mais que 30 registros!");
     }
     else {
-      console.log("Aparentemente ainda nao executou.");
+      console.log("Aparentemente ainda nao executou. Prosseguindo.");
     }
-
-    console.log("quant Orgaos Julgadores: " + quant );
 
     await cadastraOJ(connection);
 
@@ -52,9 +60,8 @@ async function run() {
 
     await processaIntimacoesPJE(connection);
 
+    // Realizando a migracao dos avisos de 5 em 5 registros, pq ela eh lenta.
     let quantDiasRecuo = 5;
-
-    // Realizando a migração de 5 em 5 registros, pq ela eh lenta.
     while (quantDiasRecuo <= 50) {
       await migraIntimacoesPJE(connection, quantDiasRecuo);
       quantDiasRecuo += 5;
@@ -93,7 +100,7 @@ async function obtemQuantOJCadastrados(connection) {
   }
 
   await rs.close();
-  console.log("<<< Finalizado Contagem Orgaos Julgadores ");
+  console.log("<<< Finalizada a Contagem Orgaos Julgadores ");
 
   return quant;
 }
@@ -185,7 +192,6 @@ async function cadastraPromotorias(connection) {
     exception when others then if sqlcode <> -942 then raise; end if;
     end;`
   );
-
   connection.commit();
 
   console.log("<<< Finalizando Cadastro de Promotorias");
@@ -193,6 +199,7 @@ async function cadastraPromotorias(connection) {
 
 async function alteraMotivoNaoDistr(connection) {
   console.log(">>> Iniciando alteraMotivoNanDistr");
+
   await connection.execute (
     `begin
       execute immediate 
@@ -204,13 +211,14 @@ async function alteraMotivoNaoDistr(connection) {
     exception when others then if sqlcode <> -942 then raise; end if;
     end;`
   );
-
   connection.commit();
+
   console.log("<<< Finalizando alteraMotivoNanDistr");
 }
 
 async function processaAvisos(connection) {
   console.log(">>> Iniciando processaAvisos");
+
   await connection.execute (
     `begin
         tjrj.tjrj_pa_pje.pr_processa_aviso_pje;
@@ -218,13 +226,14 @@ async function processaAvisos(connection) {
     exception when others then if sqlcode <> -942 then raise; end if;
     end;`
   );
-
   connection.commit();
+
   console.log("<<< Finalizando processaAvisos");
 }
 
 async function processaIntimacoesPJE(connection) {
   console.log(">>> Iniciando processaIntimacoesPJE");
+
   await connection.execute (
     `begin
         tjrj.tjrj_pa_pje.pr_processa_aviso_pje;
@@ -232,14 +241,15 @@ async function processaIntimacoesPJE(connection) {
     exception when others then if sqlcode <> -942 then raise; end if;
     end;`
   );
-
   connection.commit();
+
   console.log("<<< Finalizando processaIntimacoesPJE");
 }
 
 async function migraIntimacoesPJE(connection, numDiasRecuo) {
   console.log(">>> Iniciando migraIntimacoesPJE");
   console.log("Recuando: [" + numDiasRecuo + "] dias");
+
   await connection.execute (
     `begin
     tjrj.tjrj_pa_pje.pr_migra_intimacao_pje( :numdiasP );
