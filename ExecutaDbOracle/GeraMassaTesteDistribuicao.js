@@ -199,14 +199,14 @@ async function cadastraPromotorias(connection) {
 
 async function alteraMotivoNaoDistr(connection) {
   console.log(">>> Iniciando alteraMotivoNanDistr");
-
+  // Obs:  MND.PJND_DK = 3 => Sem regra de cálculo de dígito
   await connection.execute (
     `begin
       execute immediate 
       '
-        update TJRJ_PJE_MOTIVO_NAO_DISTRIB mnd 
-        set MND.PJND_IN_INTERV_SECRETARIA=''S''
-        where MND.PJND_DS_MOTIVO=''Sem regra de cálculo de dígito''
+      update TJRJ_PJE_MOTIVO_NAO_DISTRIB mnd 
+      set MND.PJND_IN_INTERV_SECRETARIA=''S''
+      where MND.PJND_DK = 3
       ';
     exception when others then if sqlcode <> -942 then raise; end if;
     end;`
