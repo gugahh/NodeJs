@@ -58,7 +58,7 @@ async function run() {
 
     await processaAvisos(connection);
 
-    await processaIntimacoesPJE(connection);
+    await processaDistribuicaoPJE(connection);
 
     // Realizando a migracao dos avisos de 5 em 5 registros, pq ela eh lenta.
     let quantDiasRecuo = 5;
@@ -112,7 +112,7 @@ async function cadastraOJ(connection) {
       execute immediate 
       '
           update TJRJ_MP_PJE_ORGAO_JULGADOR mpoj 
-          set MPOJ.TJPG_DT_IMPLANTACAO = trunc(sysdate)-50
+          set MPOJ.TJPG_DT_IMPLANTACAO = trunc(sysdate) - 50
           where MPOJ.TJPG_TJOJ_DK in 
           (
               select  POJ.TJOJ_DK
@@ -161,14 +161,14 @@ async function cadastraPromotorias(connection) {
       and M.PJIO_DT_INCLUSAO is null
       and oo.orgi_dk in 
       (
-          select distinct
-                   promo2.orgi_dk
+          select distinct promo2.orgi_dk
           from mcpr_vw_movimentacao_func mfun
           inner join orgi_orgao secret
-            on secret.orgi_dk=mfun.cdorgao and secret.ORGI_TPOR_DK = 7
+            on secret.orgi_dk = mfun.cdorgao 
+            and secret.ORGI_TPOR_DK = 7
           inner join orgi_orgao secret2 
             on secret2.ORGI_DK  = SECRET.ORGI_DK
-            and  (secret2.ORGI_DT_FIM is null or secret2.ORGI_DT_FIM   >= trunc(sysdate))          
+            and  (secret2.ORGI_DT_FIM is null or secret2.ORGI_DT_FIM   >= trunc(sysdate))
           inner join ORGI.ORGI_AUXILIA promos
             on promos.ORAU_ORGI_DK = secret2.ORGI_DK
           inner join orgi_orgao promo2 
@@ -206,7 +206,8 @@ async function alteraMotivoNaoDistr(connection) {
       '
       update TJRJ_PJE_MOTIVO_NAO_DISTRIB mnd 
       set MND.PJND_IN_INTERV_SECRETARIA=''S''
-      where MND.PJND_DK = 3
+      where   MND.PJND_DK = 3 
+      and     MND.PJND_IN_INTERV_SECRETARIA <> ''S''
       ';
     exception when others then if sqlcode <> -942 then raise; end if;
     end;`
@@ -222,8 +223,7 @@ async function processaAvisos(connection) {
   await connection.execute (
     `begin
         tjrj.tjrj_pa_pje.pr_processa_aviso_pje;
-        commit;
-    exception when others then if sqlcode <> -942 then raise; end if;
+        exception when others then if sqlcode <> -942 then raise; end if;
     end;`
   );
   connection.commit();
@@ -231,28 +231,27 @@ async function processaAvisos(connection) {
   console.log("<<< Finalizando processaAvisos");
 }
 
-async function processaIntimacoesPJE(connection) {
-  console.log(">>> Iniciando processaIntimacoesPJE");
+async function processaDistribuicaoPJE(connection) {
+  console.log(">>> Iniciando processaDistribuicaoPJE");
 
   await connection.execute (
     `begin
-        tjrj.tjrj_pa_pje.pr_processa_aviso_pje;
-        commit;
-    exception when others then if sqlcode <> -942 then raise; end if;
+        tjrj.tjrj_pa_pje.pr_distribuicao_pje;
+        exception when others then if sqlcode <> -942 then raise; end if;
     end;`
   );
   connection.commit();
 
-  console.log("<<< Finalizando processaIntimacoesPJE");
+  console.log("<<< Finalizando processaDistribuicaoPJE");
 }
 
 async function migraIntimacoesPJE(connection, numDiasRecuo) {
   console.log(">>> Iniciando migraIntimacoesPJE");
-  console.log("Recuando: [" + numDiasRecuo + "] dias");
+  console.log("\tRecuando: [" + numDiasRecuo + "] dias");
 
   await connection.execute (
     `begin
-    tjrj.tjrj_pa_pje.pr_migra_intimacao_pje( :numdiasP );
+      tjrj.tjrj_pa_pje.pr_migra_intimacao_pje( :numdiasP );
       commit;
     end;`, { numdiasP: numDiasRecuo } );
 
