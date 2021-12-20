@@ -13,6 +13,7 @@ console.log("\n===== Gerador de Massa de Teste de Distribuicao =====");
 if (!Array.isArray(myArgs) || myArgs.length != 3) {
   console.error("\n====Erro!====");
   console.error("* Devem ser informados String de Conexao, usuario e senha como parametros.");
+  console.error("* Exemplo: node GeraMassaTesteDistribuicao.js 10.0.251.32:1521/CORR userX senhaX");
   console.error("* Obs: Nao utilize espacos na definicao da String de Conexao.\n");
   process.exit();
 }
