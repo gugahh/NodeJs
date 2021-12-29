@@ -1,4 +1,5 @@
 const oracledb = require('oracledb');
+oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 
 var myArgs = process.argv.slice(2);
 // console.log('myArgs: ', myArgs);
@@ -7,13 +8,13 @@ var p_conn_string
 var p_usuario;
 var p_senha;
 
-console.log("\n===== Gerador de Massa de Teste de Distribuicao =====");
+console.log("\n===== Cadastra Distribuidores do PJE =====");
 
 // Obtendo definicoes de Banco de Dados a partir da linha de comando.
 if (!Array.isArray(myArgs) || myArgs.length != 3) {
   console.error("\n====Erro!====");
   console.error("* Devem ser informados String de Conexao, usuario e senha como parametros.");
-  console.error("* Exemplo: node GeraMassaTesteDistribuicao.js 10.0.251.32:1521/CORR userX senhaX");
+  console.error("* Exemplo: node CadastraDistribuidores.js 10.0.251.32:1521/CORR userX senhaX");
   console.error("* Obs: Nao utilize espacos na definicao da String de Conexao.\n");
   process.exit();
 }
@@ -42,24 +43,34 @@ async function run() {
     console.log("Conectou ao BD Oracle com sucesso.");
 
     var distribuidores = [
-        { id:1,	matric:'00008796',		nome:'Gustavo' },
-        { id:2,	matric:'00004112',		nome:'Mauro' },
-        { id:3,	matric:'00007430',		nome:'Sebastian' },
-        { id:4,	matric:'00007014',		nome:'Jorge' },
-        { id:5,	matric:'00003480',		nome:'Dr. João Alfredo' },
-        { id:6,	matric:'00003439',		nome:'Cleudo' },
-        { id:7,	matric:'00008295',		nome:'Douglas' }
+        { matricula:'00008796',		nome:'Gustavo' },
+        { matricula:'00004112',		nome:'Mauro' },
+        { matricula:'00007430',		nome:'Sebastian' },
+        { matricula:'00007014',		nome:'Jorge' },
+        { matricula:'00003480',		nome:'Dr. João Alfredo' },
+        { matricula:'00003439',		nome:'Cleudo' },
+        { matricula:'00008295',		nome:'Douglas' },
+        { matricula:'00008797',		nome:'Frederico Lellis' }
     ];
 
-    distribuidores.forEach(( distribuidor ) => {
+    // Utilizar este estilo de loop for para garantir processamento sincrono.
+    for ( const distribuidor of distribuidores ) {
 
+      console.log(">>> Processando o usuario: " + distribuidor.nome + " - " + distribuidor.matricula);
       // TODO: implementar if
-      await isDistribuidorCadastrado(connection, distribuidor);
-      await cadastraDistribuidor(connection, distribuidor);
-      await avancaASequence(connection);
-      await cadastraPermissoes(connection, distribuidor);
+      var iscadastrado = await isDistribuidorCadastrado(connection, distribuidor);
+      if (iscadastrado) {
+        console.log("\tJa esta cadastrado. Nada a fazer");
+      } else {
+        console.log("\tNAO Esta cadastrado. Cadastrando.");
 
-    });
+        var idNovoDistribuidor = await obtemIdDistribuidor(connection);
+        console.log("\t>> Novo Id: " + idNovoDistribuidor);
+
+        await cadastraDistribuidor(connection, distribuidor, idNovoDistribuidor);
+        await cadastraPermissoes(connection, idNovoDistribuidor);
+      }
+    };
 
     console.log("===== Todo o processamento finalizado. =====");
 
@@ -77,65 +88,70 @@ async function run() {
 }
 
 async function isDistribuidorCadastrado(connection, distribuidor) {
-    // TODO: implementar
-    return false;
-};
 
-async function cadastraDistribuidor(connection, distribuidor) {
-  console.log(">>> Cadastrando o distribuidor: " + distribuidor.nome);
-  await connection.execute (
-    `begin
-      execute immediate 
-      '
-        INSERT INTO tjrj_pje_distribuidor (
-            pjdt_dk,
-            pjdt_cdmatricula,
-            pjdt_dt_inclusao,
-            pjdt_observacao
-        )
-        Select
-            1,
-            '00008796',
-            SYSDATE,
-            'Usuário Gustavo'
-        FROM DUAL;
-      ';
-    exception when others then if sqlcode <> -942 then raise; end if;
-    end;`
-  );
-  connection.commit();
+  var result = await connection.execute(
+    ` SELECT count(*) as QUANT
+      FROM tjrj_pje_distribuidor
+      WHERE pjdt_cdmatricula = :matricula `, 
+      [distribuidor.matricula], 
+      { resultSet: true, outFormat: oracledb.OUT_FORMAT_OBJECT });
 
-  console.log("<<< Finalizou o Cadastro do distribuidor: " + distribuidor.nome);
-}
+      let row;
+      var quant;
 
-// Avancar a sequence ate a quant de distribuidores
-async function avancaASequence(connection) {
-  console.log(">>> Avancando a sequence em 1 unidade");
-
-  await connection.execute (
-    `
-    DECLARE
-        currSeq         NUMBER;
-    BEGIN
-        Select tjrj.PJDT_SQ_DK.NEXTVAL into currSeq from DUAL;
-        commit ;
-
-    EXCEPTION when others then if sqlcode <> -942 then raise; end if;
-    END; 
-    `
-  );
-  connection.commit();
-}
-
-async function cadastraPermissoes(connection, distribuidor) {
-    console.log(">>> Cadastrando as permissoes do distribuidor: " + distribuidor.nome);
-  await connection.execute (
-    `
+      while ((row = await result.resultSet.getRow())) {
+        quant = row.QUANT;
+      }
+      await result.resultSet.close();
     
-    begin
-      execute immediate 
-      '
-        INSERT INTO tjrj_pje_perm_distrib (
+      return quant;
+    }
+
+async function obtemIdDistribuidor(connection) {
+  const result = await connection.execute(
+    `BEGIN
+        :id := TJRJ_SQ_PJTD_DK.NEXTVAL;
+     END; `,
+    {id : {type: oracledb.NUMBER, dir: oracledb.BIND_OUT } } // Variavel de Bind "OUT"
+  );
+  
+  return result.outBinds.id; 
+}
+
+// Cadastra um novo distribuidor.
+async function cadastraDistribuidor(connection, distribuidor, idDistribuidor) {
+  console.log("\t>>> Cadastrando o distribuidor: " + distribuidor.nome);
+
+  const result = await connection.execute(
+    `INSERT INTO tjrj_pje_distribuidor 
+    (
+      pjdt_dk           ,
+      pjdt_cdmatricula  ,
+      pjdt_dt_inclusao  ,
+      pjdt_observacao
+    )
+    Select
+      :id  ,
+      :matricula               ,
+      SYSDATE                  ,
+      :observacao
+    FROM DUAL `,
+    {
+      id:         idDistribuidor ,
+      matricula:  distribuidor.matricula   ,
+      observacao: distribuidor.nome
+    } 
+  );
+  connection.commit();
+}
+
+// Cadastra permissoes em todos os orgaos que tenham intimacoes nao distribuidas.
+async function cadastraPermissoes(connection, idDistribuidor) {
+  console.log("\t>>> Cadastrando as permissoes do distribuidor de id: " + idDistribuidor);
+  
+  const result = await connection.execute(
+    `
+          INSERT INTO tjrj_pje_perm_distrib (
             pjpd_dk,
             pjpd_pjdt_dk,
             pjpd_orge_dk,
@@ -143,9 +159,9 @@ async function cadastraPermissoes(connection, distribuidor) {
             pjpd_in_ativo
         )
         SELECT
-            TJRJ.PJPD_SQ_DK.NEXTVAL,
-            1,                      -- Gustavo
-            ORGE.ORGE_ORGA_DK ,
+            TJRJ.PJPD_SQ_DK.NEXTVAL ,
+            :idDistribuidor         ,
+            ORGE.ORGE_ORGA_DK       ,
             SYSDATE,
             'S'
         from MPRJ.MPRJ_ORGAO_EXT ORGE
@@ -168,17 +184,13 @@ async function cadastraPermissoes(connection, distribuidor) {
                 from tjrj_pje_perm_distrib perm_exist
                 where   1=1
                 and     perm_exist.pjpd_orge_dk = ORGE2.ORGE_ORGA_DK
-                and     perm_exist.pjpd_pjdt_dk = 1 -- Gustavo
+                and     perm_exist.pjpd_pjdt_dk = :idDistribuidor
             )
         )
-      ';
-    exception when others then if sqlcode <> -942 then raise; end if;
-    end;
-    `
+    `,
+    { idDistribuidor: idDistribuidor } 
   );
   connection.commit();
-
-  console.log("<<< Finalizando Cadastro de permissoes");
 }
 
 run();
