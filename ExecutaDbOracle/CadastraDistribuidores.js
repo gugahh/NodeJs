@@ -65,7 +65,7 @@ async function run() {
         console.log("\tNAO Esta cadastrado. Cadastrando.");
 
         var idNovoDistribuidor = await obtemIdDistribuidor(connection);
-        console.log("\t>> Novo Id: " + idNovoDistribuidor);
+        console.log("\t\t>> Novo Id: " + idNovoDistribuidor);
 
         await cadastraDistribuidor(connection, distribuidor, idNovoDistribuidor);
         await cadastraPermissoes(connection, idNovoDistribuidor);
@@ -90,29 +90,28 @@ async function run() {
 async function isDistribuidorCadastrado(connection, distribuidor) {
 
   var result = await connection.execute(
-    ` SELECT count(*) as QUANT
-      FROM tjrj_pje_distribuidor
-      WHERE pjdt_cdmatricula = :matricula `, 
-      [distribuidor.matricula], 
-      { resultSet: true, outFormat: oracledb.OUT_FORMAT_OBJECT });
-
-      let row;
-      var quant;
-
-      while ((row = await result.resultSet.getRow())) {
-        quant = row.QUANT;
-      }
-      await result.resultSet.close();
-    
-      return quant;
-    }
+    `
+    BEGIN
+        SELECT count(*) into :quant
+        FROM tjrj_pje_distribuidor
+        WHERE pjdt_cdmatricula = :matricula ;
+     END; `,
+     {
+        matricula:  distribuidor.matricula,
+        quant : {type: oracledb.NUMBER, dir: oracledb.BIND_OUT } // Variavel de Bind "OUT"
+      } 
+  );
+  return result.outBinds.quant; 
+}
 
 async function obtemIdDistribuidor(connection) {
   const result = await connection.execute(
     `BEGIN
         :id := TJRJ_SQ_PJTD_DK.NEXTVAL;
      END; `,
-    {id : {type: oracledb.NUMBER, dir: oracledb.BIND_OUT } } // Variavel de Bind "OUT"
+    {
+      id : {type: oracledb.NUMBER, dir: oracledb.BIND_OUT }
+    } // Variavel de Bind "OUT"
   );
   
   return result.outBinds.id; 
@@ -120,7 +119,7 @@ async function obtemIdDistribuidor(connection) {
 
 // Cadastra um novo distribuidor.
 async function cadastraDistribuidor(connection, distribuidor, idDistribuidor) {
-  console.log("\t>>> Cadastrando o distribuidor: " + distribuidor.nome);
+  console.log("\t\t>> Cadastrando o distribuidor: " + distribuidor.nome);
 
   const result = await connection.execute(
     `INSERT INTO tjrj_pje_distribuidor 
@@ -147,7 +146,7 @@ async function cadastraDistribuidor(connection, distribuidor, idDistribuidor) {
 
 // Cadastra permissoes em todos os orgaos que tenham intimacoes nao distribuidas.
 async function cadastraPermissoes(connection, idDistribuidor) {
-  console.log("\t>>> Cadastrando as permissoes do distribuidor de id: " + idDistribuidor);
+  console.log("\t\t>> Cadastrando as permissoes do distribuidor de id: " + idDistribuidor);
   
   const result = await connection.execute(
     `
