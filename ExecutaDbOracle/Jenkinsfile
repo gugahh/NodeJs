@@ -4,6 +4,13 @@ pipeline {
 	tools {nodejs "nodejs"}
 
 	stages {
+
+		stage("Subdiretorio") {
+			steps {
+				sh 'cd ExecutaDbOracle'
+			}
+		}
+
 	
 		stage("Dependencias") {
 			steps {
