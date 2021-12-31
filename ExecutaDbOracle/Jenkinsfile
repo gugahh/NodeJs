@@ -7,22 +7,28 @@ pipeline {
 
 		stage("Dependencias") {
 			steps {
-				sh 'cd ExecutaDbOracle \
-				npm install'
+				sh '''
+					cd ExecutaDbOracle
+					npm install
+				'''
 			}			
 		}
 		
 		stage("Gera Massa") {
 			steps {
-				sh 'cd ExecutaDbOracle \
-				exec node GeraMassaTesteDistribuicao.js "10.0.251.32/CORR" TJRJ tjrj63'
+				sh '''
+					cd ExecutaDbOracle
+					node GeraMassaTesteDistribuicao.js "10.0.251.32/CORR" TJRJ tjrj63
+				'''
 			}
 		}
 		
 		stage("Cadastra distribuidores") {
 			steps {
-				sh 'cd ExecutaDbOracle \
-				exec node GeraMassaTesteDistribuicao.js "10.0.251.32/CORR" TJRJ tjrj63'
+				sh '''
+					cd ExecutaDbOracle
+					node GeraMassaTesteDistribuicao.js "10.0.251.32/CORR" TJRJ tjrj63
+				'''
 			}
 		}
 	}
