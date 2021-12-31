@@ -3,12 +3,6 @@ pipeline {
 
 	stages {
 	
-		stage("Clonando o Git") {
-			steps {
-				git 'https://github.com/gugahh/NodeJs.git'
-			}
-		}
-		
 		stage("Dependencias") {
 			steps {
 				sh 'npm install'
