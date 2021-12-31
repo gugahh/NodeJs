@@ -1,8 +1,6 @@
 pipeline {
 	agent any
 
-	tools { Node "Node" }
-
 	stages {
 	
 		stage("Clonando o Git") {
@@ -13,7 +11,6 @@ pipeline {
 		
 		stage("Dependencias") {
 			steps {
-				sh 'cd ExecutaDbOracle'
 				sh 'npm install'
 			}			
 		}
