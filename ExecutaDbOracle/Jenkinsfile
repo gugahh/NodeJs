@@ -1,0 +1,31 @@
+pipeline {
+	agent any
+
+	stages {
+	
+		stage("Clonando o Git") {
+			steps {
+				git 'https://github.com/gugahh/NodeJs.git'
+			}
+		}
+		
+		stage("Dependencias") {
+			steps {
+				sh 'cd ExecutaDbOracle'
+				sh 'npm install'
+			}			
+		}
+		
+		stage("Gera Massa") {
+			steps {
+				sh 'node GeraMassaTesteDistribuicao.js "10.0.251.32/CORR" TJRJ tjrj63'
+			}
+		}
+		
+		stage("Cadastra distribuidores") {
+			steps {
+				sh 'node GeraMassaTesteDistribuicao.js "10.0.251.32/CORR" TJRJ tjrj63'
+			}
+		}
+	}
+}
