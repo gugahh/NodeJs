@@ -1,6 +1,8 @@
 pipeline {
 	agent any
 
+	tools { Node "Node" }
+
 	stages {
 	
 		stage("Clonando o Git") {
