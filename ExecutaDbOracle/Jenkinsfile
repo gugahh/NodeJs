@@ -5,13 +5,6 @@ pipeline {
 
 	stages {
 
-		stage("Subdiretorio") {
-			steps {
-				sh 'cd ExecutaDbOracle'
-			}
-		}
-
-	
 		stage("Dependencias") {
 			steps {
 				sh 'cd ExecutaDbOracle \
