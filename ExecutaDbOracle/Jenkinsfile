@@ -1,5 +1,11 @@
 pipeline {
 	agent any
+	
+	environment {
+		DB_CONN_STRING = credentials('db_conn_string')
+		DB_USER = credentials('db_user')
+		DB_PASS = credentials('db_pass')
+	}
 
 	tools {nodejs "nodejs"}
 
@@ -18,7 +24,7 @@ pipeline {
 			steps {
 				sh '''
 					cd ExecutaDbOracle
-					node GeraMassaTesteDistribuicao.js "10.0.251.32/CORR" TJRJ tjrj63
+					node GeraMassaTesteDistribuicao.js DB_CONN_STRING DB_USER DB_PASS
 				'''
 			}
 		}
@@ -27,7 +33,7 @@ pipeline {
 			steps {
 				sh '''
 					cd ExecutaDbOracle
-					node CadastraDistribuidores.js "10.0.251.32/CORR" TJRJ tjrj63
+					node CadastraDistribuidores.js DB_CONN_STRING DB_USER DB_PASS
 				'''
 			}
 		}
