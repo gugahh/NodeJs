@@ -22,16 +22,9 @@ pipeline {
 		
 		stage("Gera Massa") {
 			steps {
-				withCredentials(
-					[
-						string(credentialsId: 'DB_CONN_STRING', variable: $DB_CONN_STRING) , 
-						string(credentialsId: 'DB_USER', variable: $DB_USER) , 
-						string(credentialsId: 'DB_PASS', variable: $DB_PASS)
-					]) {
-					
 					sh '''
 						cd ExecutaDbOracle
-						node GeraMassaTesteDistribuicao.js DB_CONN_STRING DB_USER DB_PASS
+						node GeraMassaTesteDistribuicao.js $DB_CONN_STRING $DB_USER $DB_PASS
 					'''
 				}
 			}
@@ -39,10 +32,17 @@ pipeline {
 		
 		stage("Cadastra distribuidores") {
 			steps {
-				sh '''
-					cd ExecutaDbOracle
-					node CadastraDistribuidores.js DB_CONN_STRING DB_USER DB_PASS
-				'''
+				withCredentials(
+					[
+						string(credentialsId: 'DB_CONN_STRING', variable: $DB_CONN_STRING) , 
+						string(credentialsId: 'DB_USER', variable: $DB_USER) , 
+						string(credentialsId: 'DB_PASS', variable: $DB_PASS)
+					]) {
+					sh '''
+						cd ExecutaDbOracle
+						node CadastraDistribuidores.js $DB_CONN_STRING $DB_USER $DB_PASS
+					'''
+				}
 			}
 		}
 	}
