@@ -26,7 +26,6 @@ pipeline {
 						cd ExecutaDbOracle
 						node GeraMassaTesteDistribuicao.js $DB_CONN_STRING $DB_USER $DB_PASS
 					'''
-				}
 			}
 		}
 		
