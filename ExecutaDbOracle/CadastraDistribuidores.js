@@ -50,7 +50,8 @@ async function run() {
         { matricula:'00003480',		nome:'Dr. João Alfredo' },
         { matricula:'00003439',		nome:'Cleudo' },
         { matricula:'00008295',		nome:'Douglas' },
-        { matricula:'00008797',		nome:'Frederico Lellis' }
+        { matricula:'00008797',		nome:'Frederico Lellis' },
+        { matricula:'00005514',		nome:'FABIOLA RESENDE RODRIGUES'}
     ];
 
     // Utilizar este estilo de loop for para garantir processamento sincrono.

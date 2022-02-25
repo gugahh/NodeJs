@@ -8,7 +8,7 @@ var p_conn_string
 var p_usuario;
 var p_senha;
 
-console.log("\n===== Cadastra Distribuidores do PJE =====");
+console.log("\n===== Cria Tabelas Criminais =====");
 
 // Obtendo definicoes de Banco de Dados a partir da linha de comando.
 if (!Array.isArray(myArgs) || myArgs.length != 3) {
