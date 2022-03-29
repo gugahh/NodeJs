@@ -25,7 +25,7 @@ pipeline {
 			steps {
 				sh '''
 					cd ExecutaDbOracle
-					node ExecutaScriptDdl.js $DB_CONN_STRING $DB_USER $DB_PASS ./sql/altera_tipo_campo_nro_proced.sql
+					node ExecutaScriptDdl.js $DB_CONN_STRING $DB_USER $DB_PASS ./sql/cria_evento_criminal.sql
 				'''
 			}
 		}
