@@ -21,6 +21,15 @@ pipeline {
 			}			
 		}
 
+		stage("Altera Checks") {
+			steps {
+				sh '''
+					cd ExecutaDbOracle
+					node ExecutaScriptDdl.js $DB_CONN_STRING $DB_USER $DB_PASS ./sql/checks_status_intimac.sql
+				'''
+			}
+		}
+
 		stage("Altera Schema") {
 			steps {
 				sh '''
