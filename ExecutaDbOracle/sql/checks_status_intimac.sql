@@ -5,13 +5,6 @@ DROP INDEX "TJRJ"."ACOS_TEIP_DK_UK" ;
 CREATE UNIQUE INDEX TJRJ.ACOS_TEIP_DK_UK ON
 TJRJ.TJRJ_AVISO_COMUNIC_STATUS 
 (
-/*
-    Cada intimacao, no portal, so pode ter um status uma unica vez;
-    Cada intimacao, no PJE, só pode ter os status 
-        ( pendente, respondido, cancelado e resolvido )
-        uma unica vez - porém, como PJE admite os status: 
-            RESPONDIDA_SEM_CONFIRMACAO e 
-            a intimação pode voltar a ficar recebida / tácita mais de uma vez. */
     ACOS_AVCI_DK, 
     ACOS_TEIP_DK,
     CASE
@@ -21,12 +14,12 @@ TJRJ.TJRJ_AVISO_COMUNIC_STATUS
             (
                 ACOS_TEIP_DK IN 
                 (
-                    2,    -- RECEBIDA
-                    3,    -- RECEBIDA_TACITA
-                    6    -- RESPONDIDA_SEM_CONFIRMACAO
+                    2,
+                    3,
+                    6 
                 )
             )
-        ) THEN ACOS_DK -- permite repeticao
+        ) THEN ACOS_DK
         ELSE 0
     END
 ) ;
