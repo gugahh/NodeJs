@@ -29,15 +29,6 @@ pipeline {
 				'''
 			}
 		}
-
-		stage("Altera Schema") {
-			steps {
-				sh '''
-					cd ExecutaDbOracle
-					node ExecutaScriptDdl.js $DB_CONN_STRING $DB_USER $DB_PASS ./sql/cria_evento_criminal.sql
-				'''
-			}
-		}
 	}
 
 }
