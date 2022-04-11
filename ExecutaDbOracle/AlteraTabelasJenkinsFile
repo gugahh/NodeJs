@@ -21,7 +21,25 @@ pipeline {
 			}			
 		}
 
-		stage("Altera Checks") {
+		stage("Exclui Check No protocolo") {
+			steps {
+				sh '''
+					cd ExecutaDbOracle
+					node ExecutaScriptDdl.js $DB_CONN_STRING $DB_USER $DB_PASS ./sql/exclui_check_nro_protocolo.sql
+				'''
+			}
+		}
+
+		stage("Exclui Indice acos_teip_dk_uk") {
+			steps {
+				sh '''
+					cd ExecutaDbOracle
+					node ExecutaScriptDdl.js $DB_CONN_STRING $DB_USER $DB_PASS ./sql/exclui_indice_acos_teip_dk_uk.sql
+				'''
+			}
+		}
+
+		stage("Cria novo(s) Check(s)") {
 			steps {
 				sh '''
 					cd ExecutaDbOracle
