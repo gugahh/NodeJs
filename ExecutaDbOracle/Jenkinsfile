@@ -20,6 +20,7 @@ pipeline {
 			}			
 		}
 		
+		/*
 		stage("Gera Massa") {
 			steps {
 				sh '''
@@ -28,6 +29,7 @@ pipeline {
 				'''
 			}
 		}
+		*/
 		
 		stage("Cadastra distribuidores") {
 			steps {
