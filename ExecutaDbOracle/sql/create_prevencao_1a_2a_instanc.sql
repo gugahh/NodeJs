@@ -108,7 +108,6 @@ GRANT SELECT, INSERT, DELETE, UPDATE 	ON TJRJ.TJRJ_PREVENCAO TO rl_tjrj_webserv;
 CREATE SEQUENCE tjrj.TJRJ_SQ_TPRV_DK START WITH 1 INCREMENT BY 1 NOORDER NOCACHE NOCYCLE ;
 GRANT SELECT ON tjrj.TJRJ_SQ_TPRV_DK	TO rl_tjrj_webserv;
 
--- Comments
 COMMENT ON TABLE TJRJ.TJRJ_PREVENCAO IS 'Tabela destinada a permitir o cadastramento de regras de prevenção para processos específicos, tanto para o Portal como para o PJE, seja em 1a ou 2a instância.';
 COMMENT ON COLUMN TJRJ.TJRJ_PREVENCAO.TPRV_DK IS 'Primary Key baseada em sequence.';
 COMMENT ON COLUMN TJRJ.TJRJ_PREVENCAO.TPRV_ORGI_DK IS 'Órgão de execução do MPRJ para o qual serão distribuídas as intimações a que se refere este prevento.';
