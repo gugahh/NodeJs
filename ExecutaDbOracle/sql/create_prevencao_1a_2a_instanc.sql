@@ -40,6 +40,7 @@ COMMIT;
 CREATE TABLE TJRJ.TJRJ_PREVENCAO
 (
 	TPRV_DK              NUMBER 			NOT NULL ,
+	TRPV_ORGE_FK         NUMBER 			NULL ,
 	TPRV_ORGI_DK         NUMBER 			NOT NULL ,
 	TPRV_CD_PROCESSO_CNJ VARCHAR2(50) 		NOT NULL ,
 	TPRV_CPF_OPERADOR    VARCHAR2(11) 		NOT NULL ,
@@ -51,6 +52,13 @@ CREATE TABLE TJRJ.TJRJ_PREVENCAO
 	TPRV_DT_INATIVACAO   DATE 				NULL ,
 	CONSTRAINT  TPRV_PK PRIMARY KEY (TPRV_DK)
 );
+
+ALTER TABLE TJRJ.TJRJ_PREVENCAO
+ADD CONSTRAINT TRPV_ORGE_FK FOREIGN KEY (TRPV_ORGE_FK) 
+REFERENCES MPRJ.MPRJ_ORGAO_EXT (ORGE_ORGA_DK);
+
+	CREATE  INDEX TJRJ.TPRV_ORGE_FK_I 
+	ON TJRJ.TJRJ_PREVENCAO (TRPV_ORGE_FK   ASC);
 
 ALTER TABLE TJRJ.TJRJ_PREVENCAO
 ADD CONSTRAINT TPRV_ORGI_FK 
@@ -97,6 +105,7 @@ ON TJRJ.TJRJ_PREVENCAO
 (
 	TPRV_CD_PROCESSO_CNJ ,
 	TPRV_INSTANCIA_PROC ,
+	TRPV_ORGE_FK ,
 	CASE
 		WHEN TPRV_IN_REGRA_ATIVA = 'S' THEN 0 
 		ELSE TPRV_DK 
@@ -110,6 +119,7 @@ GRANT SELECT ON tjrj.TJRJ_SQ_TPRV_DK	TO rl_tjrj_webserv;
 
 COMMENT ON TABLE TJRJ.TJRJ_PREVENCAO IS 'Tabela destinada a permitir o cadastramento de regras de prevenção para processos específicos, tanto para o Portal como para o PJE, seja em 1a ou 2a instância.';
 COMMENT ON COLUMN TJRJ.TJRJ_PREVENCAO.TPRV_DK IS 'Primary Key baseada em sequence.';
+COMMENT ON COLUMN TJRJ.TJRJ_PREVENCAO.TRPV_ORGE_FK IS 'Indica de qual órgão julgador a intimação deve ser originada, para que se utilize esta prevenção. Utilize null no caso de qualquer origem. FK para MPRJ_ORGAO_EXT.';
 COMMENT ON COLUMN TJRJ.TJRJ_PREVENCAO.TPRV_ORGI_DK IS 'Órgão de execução do MPRJ para o qual serão distribuídas as intimações a que se refere este prevento.';
 COMMENT ON COLUMN TJRJ.TJRJ_PREVENCAO.TPRV_CD_PROCESSO_CNJ IS 'Número do Processo ao qual se aplica esta regra de prevenção.';
 COMMENT ON COLUMN TJRJ.TJRJ_PREVENCAO.TPRV_CPF_OPERADOR IS 'CPF da pessoa (operador) que cadastrou esta regra de prevenção.';
