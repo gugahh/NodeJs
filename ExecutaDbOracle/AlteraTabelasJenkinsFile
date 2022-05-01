@@ -65,15 +65,6 @@ pipeline {
 				'''
 			}
 		}
-
-		stage("Cria novas tabelas Prevencao") {
-			steps {
-				sh '''
-					cd ExecutaDbOracle
-					node ExecutaScriptDdl.js $DB_CONN_STRING $DB_USER $DB_PASS ./sql/create_prevencao_1a_2a_instanc.sql
-				'''
-			}
-		}
 	}
 
 }
