@@ -43,7 +43,7 @@ pipeline {
 			steps {
 				sh '''
 					cd ExecutaDbOracle
-					node ExecutaScriptDdl.js $DB_CONN_STRING $DB_USER $DB_PASS ./sql/cria_prevencao_1a_2a_instanc_2.sql
+					node ExecutaScriptDdl.js $DB_CONN_STRING $DB_USER $DB_PASS ./sql/create_prevencao_1a_2a_instanc_2.sql
 				'''
 			}
 		}
