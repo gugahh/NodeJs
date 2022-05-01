@@ -39,6 +39,24 @@ pipeline {
 			}
 		}
 
+		stage("Cria tabela(s) prevencao") {
+			steps {
+				sh '''
+					cd ExecutaDbOracle
+					node ExecutaScriptDdl.js $DB_CONN_STRING $DB_USER $DB_PASS ./sql/cria_prevencao_1a_2a_instancia.sql
+				'''
+			}
+		}
+
+		stage("Copia Prevencoes do PJE") {
+			steps {
+				sh '''
+					cd ExecutaDbOracle
+					node ExecutaScriptDdl.js $DB_CONN_STRING $DB_USER $DB_PASS ./sql/copia_prevencoes_pje.sql
+				'''
+			}
+		}
+
 		stage("Cria novo(s) Check(s)") {
 			steps {
 				sh '''
