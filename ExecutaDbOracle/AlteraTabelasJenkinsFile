@@ -38,7 +38,7 @@ pipeline {
 				'''
 			}
 		}
-
+		/*
 		stage("Cria tabela(s) prevencao") {
 			steps {
 				sh '''
@@ -56,6 +56,7 @@ pipeline {
 				'''
 			}
 		}
+		*/
 
 		stage("Alteracoes Metadados Pecas") {
 			steps {
