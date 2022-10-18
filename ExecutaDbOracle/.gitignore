@@ -2,3 +2,5 @@ node_modules
 exec.sh
 geramassa.sh
 *.sh
+Logs/*.*
+sh_cadastra_distrib.sh

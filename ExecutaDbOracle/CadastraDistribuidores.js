@@ -1,4 +1,5 @@
 const oracledb = require('oracledb');
+const date = require('date-and-time');
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 
 var myArgs = process.argv.slice(2);
@@ -62,6 +63,10 @@ async function run() {
         { matricula:'50000049',   nome:'Fernando Teixeira Pimenta' }
 
     ];
+
+    // Logando o timestamp atual
+    const currTimestampStr = date.format(new Date(),'DD/MM/YYYY HH:mm:ss');
+    console.log("Data de Processamento:\t " + currTimestampStr + "\n");
 
     // Utilizar este estilo de loop for para garantir processamento sincrono.
     for ( const distribuidor of distribuidores ) {
