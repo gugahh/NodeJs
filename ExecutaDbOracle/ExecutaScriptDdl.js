@@ -17,7 +17,7 @@ console.log("\n===== Executa Script DML Qualquer =====");
 if (!Array.isArray(myArgs) || myArgs.length != 4) {
   console.error("\n====Erro!====");
   console.error("* Devem ser informados String de Conexao, usuario, senha e script a ser executado como parametros.");
-  console.error("* Exemplo: node CadastraDistribuidores.js 10.0.251.32:1521/CORR userX senhaX meuscript.sql");
+  console.error("* Exemplo: node ExecutaScriptDdl.js 10.0.251.32:1521/CORR userX senhaX meuscript.sql");
   console.error("* Obs: Nao utilize espacos na definicao da String de Conexao.\n");
   process.exit();
 }
