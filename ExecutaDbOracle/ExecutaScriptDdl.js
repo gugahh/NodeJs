@@ -1,4 +1,5 @@
 const fs = require("fs");
+const date = require('date-and-time');
 const oracledb = require('oracledb');
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 
@@ -25,6 +26,10 @@ p_conn_string = myArgs[0];
 p_usuario = myArgs[1];
 p_senha = myArgs[2];
 p_caminho_script_dml = myArgs[3];
+
+// Logando o timestamp atual
+const currTimestampStr = date.format(new Date(),'DD/MM/YYYY HH:mm:ss');
+console.log("Data de Processamento:\t " + currTimestampStr + "\n");
 
 console.log("\nString de Conexão: \t" + p_conn_string);
 console.log("Usuario: \t\t" + p_usuario + "\nSenha: \t\t\t(Foi atribuída)."  + "\n");
