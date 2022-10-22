@@ -9,9 +9,9 @@ var myArgs = process.argv.slice(2);
 var p_conn_string
 var p_usuario;
 var p_senha;
-var p_caminho_script_dml;
+var p_caminho_script_ddl;
 
-console.log("\n===== Executa Script DML Qualquer =====");
+console.log("\n===== Executa Script DDL Qualquer =====");
 
 // Obtendo definicoes de Banco de Dados a partir da linha de comando.
 if (!Array.isArray(myArgs) || myArgs.length != 4) {
@@ -25,7 +25,7 @@ if (!Array.isArray(myArgs) || myArgs.length != 4) {
 p_conn_string = myArgs[0];
 p_usuario = myArgs[1];
 p_senha = myArgs[2];
-p_caminho_script_dml = myArgs[3];
+p_caminho_script_ddl = myArgs[3];
 
 // Logando o timestamp atual
 const currTimestampStr = date.format(new Date(),'DD/MM/YYYY HH:mm:ss');
@@ -33,7 +33,7 @@ console.log("Data de Processamento:\t " + currTimestampStr + "\n");
 
 console.log("\nString de Conexão: \t" + p_conn_string);
 console.log("Usuario: \t\t" + p_usuario + "\nSenha: \t\t\t(Foi atribuída)."  + "\n");
-console.log("Script de DML: " + p_caminho_script_dml + "\n");
+console.log("Script de DDL: " + p_caminho_script_ddl + "\n");
 
 async function run() {
 
@@ -42,8 +42,8 @@ async function run() {
   try {
 
     // Verificando se o arquivo informado existe mesmo.
-    if(!fs.existsSync(p_caminho_script_dml)) {
-        console.log('Arquivo DML não encontrado.');
+    if(!fs.existsSync(p_caminho_script_ddl)) {
+        console.log('Arquivo DDL não encontrado.');
         process.exitCode = 1;
         return; //Finaliza a aplicacao.
     }
@@ -61,7 +61,7 @@ async function run() {
     var fileContents;
 
     try {
-        fileContents = fs.readFileSync(p_caminho_script_dml, 'utf-8');
+        fileContents = fs.readFileSync(p_caminho_script_ddl, 'utf-8');
 
         console.log(' Arquivo lido com sucesso. Conteúdo:');
         console.log('-------------------------------------\n');
@@ -72,7 +72,7 @@ async function run() {
         // Here you get the error when the file was not found,
         // but you also get any other error
         if (err.code === 'ENOENT') {
-            console.log('Arquivo DML não encontrado.');
+            console.log('Arquivo DDL não encontrado.');
           } else {
             throw err; //Outro tipo de erro.
           }
