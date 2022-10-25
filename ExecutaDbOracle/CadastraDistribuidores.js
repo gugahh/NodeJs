@@ -65,7 +65,7 @@ async function run() {
     ];
 
     // Logando o timestamp atual
-    const currTimestampStr = date.format(new Date(),'DD/MM/YYYY HH:mm:ss');
+    const currTimestampStr = date.format(new Date(),'ddd, DD/MM/YYYY HH:mm:ss');
     console.log("Data de Processamento:\t " + currTimestampStr + "\n");
 
     // Utilizar este estilo de loop for para garantir processamento sincrono.

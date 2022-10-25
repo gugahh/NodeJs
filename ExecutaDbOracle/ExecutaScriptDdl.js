@@ -28,7 +28,7 @@ p_senha = myArgs[2];
 p_caminho_script_ddl = myArgs[3];
 
 // Logando o timestamp atual
-const currTimestampStr = date.format(new Date(),'DD/MM/YYYY HH:mm:ss');
+var currTimestampStr = date.format(new Date(),'ddd, DD/MM/YYYY HH:mm:ss');
 console.log("Data de Processamento:\t " + currTimestampStr + "\n");
 
 console.log("\nString de Conexão: \t" + p_conn_string);
@@ -79,9 +79,11 @@ async function run() {
       }
 
     await executaScript(connection, fileContents);
-    console.log("===== Executou O Script com sucesso. =====");
+    console.log("\n=========== Executou o Script com sucesso. =============");
 
-    console.log("===== Todo o processamento finalizado. =====");
+    currTimestampStr = date.format(new Date(),'ddd, DD/MM/YYYY HH:mm:ss');
+    console.log("   (Finalizado em:\t " + currTimestampStr + ")");
+    console.log("=========== Todo o processamento finalizado. ===========");
 
   } catch (err) {
     console.error(err);
