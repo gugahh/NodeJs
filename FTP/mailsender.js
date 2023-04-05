@@ -5,25 +5,30 @@ const date = require('date-and-time');
 var myArgs = process.argv.slice(2);
 // console.log('myArgs: ', myArgs);
 
-// var p_mail_server;
 var p_mail_target;
+var p_smtp_server;
+var p_smtp_sender_email;
 var p_usuario;
 var p_senha;
 
 // console.log("\n===== FTP Probe (ftprobe.js) =====");
 
 // Obtendo definicoes de Banco de Dados a partir da linha de comando.
-if (!Array.isArray(myArgs) || myArgs.length != 3) {
+if (!Array.isArray(myArgs) || myArgs.length != 5) {
   console.error("\n====Erro!====");
-  console.error("* Devem ser informados: \n\t(1) p_mail_target, \n\t(2) usuario, e \n\t(3) senha como parametros.");
-  console.error("\n* Exemplo: node mailsender.js gugahh.br@gmail.com userX senhaX");
+  console.error("* Devem ser informados: \n\t(1) tp_smtp_server, ");
+    console.error("\t(2) p_smtp_sender_email, \n\t(3) usuario, \n\t(4) senha, e \n\t(5) p_mail_target como parametros.");
+  console.error("\n* Exemplo: node mailsender.js smtp-relay.gmail.com sender@validmail userX senhaX destinatario@validmail");
   process.exit();
 }
 
-p_mail_target = myArgs[0];
-p_usuario = myArgs[1];
-p_senha = myArgs[2];
+p_smtp_server = myArgs[0];
+p_smtp_sender_email = myArgs[1];
+p_usuario = myArgs[2];
+p_senha = myArgs[3];
+p_mail_target = myArgs[4];
 
+console.log(myArgs);
 
 // async..await is not allowed in global scope, must use a wrapper
 async function main() {
@@ -33,7 +38,7 @@ async function main() {
 
   // create reusable transporter object using the default SMTP transport
   let transporter = nodemailer.createTransport({
-    host: "smtp-relay.gmail.com",
+    host: p_smtp_server,
     port: 587,
     secure: false, // true for 465, false for other ports
     auth: {
@@ -44,7 +49,7 @@ async function main() {
 
   // send mail with defined transport object
   let info = await transporter.sendMail({
-    from: '"Gugahh" <gugahh.br@gmail.com>', // sender address
+    from: p_smtp_sender_email, // sender address
     to: p_mail_target, // list of receivers
     subject: "Hello ✔", // Subject line
     text: "Hello world?", // plain text body
