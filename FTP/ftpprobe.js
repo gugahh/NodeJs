@@ -11,7 +11,7 @@ var p_senha;
 
 // console.log("\n===== FTP Probe (ftprobe.js) =====");
 
-// Obtendo definicoes de Banco de Dados a partir da linha de comando.
+// Obtendo definicoes do servidor de FTP a partir da linha de comando.
 if (!Array.isArray(myArgs) || myArgs.length != 4) {
   console.error("\n====Erro!====");
   console.error("* Devem ser informados: \n\t(1) URL do servidor FTP, \n\t(2) caminho do arquivo, \n\t(3) usuario, e \n\t(4) senha como parametros.");

@@ -11,9 +11,9 @@ var p_smtp_sender_email;
 var p_usuario;
 var p_senha;
 
-// console.log("\n===== FTP Probe (ftprobe.js) =====");
+console.log("\n===== Mail Sender (mailsender.js) =====");
 
-// Obtendo definicoes de Banco de Dados a partir da linha de comando.
+// Obtendo definicoes do servidor de email a partir da linha de comando.
 if (!Array.isArray(myArgs) || myArgs.length != 5) {
   console.error("\n====Erro!====");
   console.error("* Devem ser informados: \n\t(1) tp_smtp_server, ");
