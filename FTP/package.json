@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "basic-ftp": "^5.0.2",
+    "date-and-time": "^2.4.3",
+    "nodemailer": "^6.9.1"
+  }
+}
