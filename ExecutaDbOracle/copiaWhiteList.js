@@ -1,5 +1,6 @@
 const fetch = require('cross-fetch');
 const oracledb = require('oracledb');
+const date = require('date-and-time');
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 
 var myArgs = process.argv.slice(2);
@@ -10,6 +11,8 @@ var p_usuario;
 var p_senha;
 
 console.log("\n===== Copia WhiteList =====");
+const currTimestampStr = date.format(new Date(),'ddd, DD/MM/YYYY HH:mm:ss');
+console.log("Data de Processamento:\t " + currTimestampStr + "\n");
 
 // Obtendo definicoes de Banco de Dados a partir da linha de comando.
 if (!Array.isArray(myArgs) || myArgs.length != 3) {
@@ -24,8 +27,8 @@ p_conn_string = myArgs[0];
 p_usuario = myArgs[1];
 p_senha = myArgs[2];
 
-console.log("\nString de Conexão: \t" + p_conn_string);
-console.log("Usuario: \t\t" + p_usuario + "\nSenha: \t\t\t(Foi atribuída)."  + "\n");
+// console.log("\nString de Conexão: \t" + p_conn_string);
+// console.log("Usuario: \t\t" + p_usuario + "\nSenha: \t\t\t(Foi atribuída)."  + "\n");
 
 async function run() {
 
@@ -58,8 +61,8 @@ async function run() {
 			const data = await response.json();
 			data.every(element => {
 				counter++;
-				console.log('\nid: ' + element.id + '\tnome: ' + element.nome);
-				console.log('counter' + counter);
+				// console.log('\nid: ' + element.id + '\tnome: ' + element.nome);
+				// console.log('counter' + counter);
 				// idsOrgaos.push(element.id) ; // Adiciona um item à lista de Ids
 
 				orgaoList.push
@@ -81,7 +84,7 @@ async function run() {
 	await getData();
 
 	// console.log(idsOrgaos);
-	console.log(orgaoList);
+	// console.log(orgaoList);
     
 	// Cleanup da tabela TJRJ_COPIA_WHITELIST
 	await limpaTabela(connection);
@@ -102,7 +105,7 @@ async function run() {
 
       //await delay(10);
 
-        console.log(">>> Processando o idOrgao: " + orgao.id);
+        // console.log(">>> Processando o idOrgao: " + orgao.id);
         await insereOrgao(connection, orgao);
         // console.log(result);
     };
@@ -136,7 +139,7 @@ async function limpaTabela(connection) {
 }
 
 async function insereOrgao(connection, orgao) {
-	console.log("\t\t>> Cadastrando o Orgao: " + orgao.id);
+	console.log("\t\t>> Cadastrando o Orgao: " + orgao.id + " (" + orgao.nome + ")");
   
 	const result = await connection.execute (
 		`
