@@ -103,7 +103,6 @@ ALTER TABLE TJRJ.TJRJ_TAG_AVISO
 create sequence tjrj.tjrj_sq_taav_dk;
 grant select on tjrj.tjrj_sq_taav_dk to RL_TJRJ_WEBSERV; 
 grant select on tjrj.tjrj_sq_tapr_dk to RL_INTG_JUDI; 
-create public synonym tjrj_sq_taav_dk for tjrj.tjrj_sq_taav_dk;
 
 GRANT DELETE, INSERT, SELECT, UPDATE ON tjrj.TJRJ_TAG_AVISO TO RL_TJRJ_WEBSERV; 
 GRANT DELETE, INSERT, SELECT, UPDATE ON tjrj.TJRJ_TAG_AVISO to RL_INTG_JUDI; 
