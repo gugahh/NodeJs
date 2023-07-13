@@ -46,9 +46,9 @@ async function run() {
     var distribuidores = [
         { matricula:'00008796',		nome:'Gustavo' },
         { matricula:'00004112',		nome:'Mauro' },
+        { matricula:'00008451',   	nome:'Rita De Cassia Braga Gonçalves'},
         { matricula:'00007430',		nome:'Sebastian' },
         { matricula:'00007014',		nome:'Jorge' },
-        { matricula:'00008451',   nome:'Rita De Cassia Braga Gonçalves'},
         { matricula:'00009240',		nome:'Cristiano Ferreira Da Rocha' },
         { matricula:'50000148',		nome:'Marcia Cristina Melo Fernandes' },
         { matricula:'00003480',		nome:'Dr. João Alfredo' },
@@ -60,7 +60,8 @@ async function run() {
         { matricula:'50000032',   nome:'Jose Marcelo De Assis Santos'},
         { matricula:'50000125',   nome:'Leonardo Zdanowicz'},
         { matricula:'00009137',   nome:'Jean Ximenes De Mesquita'},
-        { matricula:'50000049',   nome:'Fernando Teixeira Pimenta' }
+        { matricula:'50000049',   nome:'Fernando Teixeira Pimenta' },
+		{ matricula:'00009284',		nome: 'Eduardo Barbosa De Souza'}
 
     ];
 
@@ -73,18 +74,23 @@ async function run() {
 
       console.log(">>> Processando o usuario: " + distribuidor.nome + " - " + distribuidor.matricula);
       // TODO: implementar if
-      var iscadastrado = await isDistribuidorCadastrado(connection, distribuidor);
-      if (iscadastrado) {
-        console.log("\tJa esta cadastrado. Nada a fazer");
+      var idDistribuidor = await obtemIdDistribuidorJaCadastrado(connection, distribuidor);
+	  //console.log("\Id do Usuario: " + idDistribuidor);
+
+      if (!isNaN(idDistribuidor) && idDistribuidor != null) {
+        console.log("\tUsuário Ja esta cadastrado. Cadastrando apenas Permissões.");
       } else {
-        console.log("\tNAO Esta cadastrado. Cadastrando.");
+        console.log("\tNAO Esta cadastrado. Cadastrando Usuario.");
 
-        var idNovoDistribuidor = await obtemIdDistribuidor(connection);
-        console.log("\t\t>> Novo Id: " + idNovoDistribuidor);
+        idDistribuidor = await obtemNovoIdDistribuidor(connection);
+        console.log("\t\t>> Novo Id: " + idDistribuidor);
 
-        await cadastraDistribuidor(connection, distribuidor, idNovoDistribuidor);
-        await cadastraPermissoes(connection, idNovoDistribuidor);
+        await cadastraDistribuidor(connection, distribuidor, idDistribuidor);
       }
+	  console.log("\Cadastrando Permissões do Usuario.");
+	  console.log("\Id do Usuario: " + idDistribuidor);
+	  await cadastraPermissoes(connection, idDistribuidor);
+
     };
 
     console.log("===== Todo o processamento finalizado. =====");
@@ -102,24 +108,25 @@ async function run() {
   }
 }
 
-async function isDistribuidorCadastrado(connection, distribuidor) {
+async function obtemIdDistribuidorJaCadastrado(connection, distribuidor) {
 
   var result = await connection.execute(
     `
     BEGIN
-        SELECT count(*) into :quant
-        FROM tjrj_pje_distribuidor
-        WHERE pjdt_cdmatricula = :matricula ;
+        SELECT di.PJDT_DK into :idUsuario
+        FROM dual 
+		left join tjrj_pje_distribuidor di 
+			on pjdt_cdmatricula = :matricula ;
      END; `,
      {
         matricula:  distribuidor.matricula,
-        quant : {type: oracledb.NUMBER, dir: oracledb.BIND_OUT } // Variavel de Bind "OUT"
+        idUsuario : {type: oracledb.NUMBER, dir: oracledb.BIND_OUT } // Variavel de Bind "OUT"
       } 
   );
-  return result.outBinds.quant; 
+  return result.outBinds.idUsuario; 
 }
 
-async function obtemIdDistribuidor(connection) {
+async function obtemNovoIdDistribuidor(connection) {
   const result = await connection.execute(
     `BEGIN
         :id := TJRJ_SQ_PJTD_DK.NEXTVAL;
