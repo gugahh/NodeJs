@@ -172,42 +172,33 @@ async function cadastraPermissoes(connection, idDistribuidor) {
   
   const result = await connection.execute(
     `
-          INSERT INTO tjrj_pje_perm_distrib (
-            pjpd_dk,
-            pjpd_pjdt_dk,
-            pjpd_orge_dk,
-            pjpd_dt_inclusao,
-            pjpd_in_ativo
-        )
-        SELECT
-            TJRJ.PJPD_SQ_DK.NEXTVAL ,
-            :idDistribuidor         ,
-            ORGE.ORGE_ORGA_DK       ,
-            SYSDATE,
-            'S'
-        from MPRJ.MPRJ_ORGAO_EXT ORGE
-        where ORGE.ORGE_ORGA_DK in
-        (
-            Select distinct     ORGE2.ORGE_ORGA_DK
-              from TJRJ_PJE_AVISO_COMUNIC_INTIM TJAC
-                  inner join TJRJ_PJE_MOTIVO_NAO_DISTRIB PJND       on PJND.PJND_DK = TJAC.TJAC_PJND_DK
-                  inner join MPRJ.MPRJ_ORGAO_EXT ORGE2              on ORGE2.ORGE_ORGA_DK = TJAC.TJAC_ORGE_DK
-            where 1=1
-            and PJND.PJND_IN_INTERV_SECRETARIA = 'S'
-            and EXISTS
-            (
-                Select 1 FROM TJRJ_VW_PJE_ORGAO_JULGADOR vwoj
-                where vwoj.vwoj_cd_id_org_julgador_mprj = ORGE2.ORGE_ORGA_DK
-            )
-            and NOT EXISTS
-            (
-                Select 1
-                from tjrj_pje_perm_distrib perm_exist
-                where   1=1
-                and     perm_exist.pjpd_orge_dk = ORGE2.ORGE_ORGA_DK
-                and     perm_exist.pjpd_pjdt_dk = :idDistribuidor
-            )
-        )
+		INSERT INTO tjrj.tjrj_pje_perm_distrib 
+		(
+			pjpd_dk,
+			pjpd_pjdt_dk,
+			PJPD_CMRC_DK,
+			pjpd_dt_inclusao,
+			pjpd_in_ativo
+		)
+		SELECT
+			TJRJ.PJPD_SQ_DK.NEXTVAL ,
+			:idDistribuidor         ,
+			CMRC.CMRC_DK			,
+			SYSDATE,
+			'S'
+		from ORGI.ORGI_COMARCA CMRC
+		where CMRC.CMRC_DK IN 
+		(
+			SELECT CMRC2.CMRC_DK 
+			FROM ORGI.ORGI_COMARCA CMRC2
+			WHERE NOT exists
+			(
+				Select 1
+				from tjrj.tjrj_pje_perm_distrib perm_exist
+				where   perm_exist.PJPD_CMRC_DK = CMRC2.CMRC_DK
+				and     perm_exist.pjpd_pjdt_dk = :idDistribuidor
+			)
+		)
     `,
     { idDistribuidor: idDistribuidor } 
   );
