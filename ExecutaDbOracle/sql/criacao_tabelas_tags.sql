@@ -101,8 +101,8 @@ ALTER TABLE TJRJ.TJRJ_TAG_AVISO
 	CREATE  INDEX TJRJ.TAAV_AVCI_FK_I ON TJRJ.TJRJ_TAG_AVISO (TAAV_AVCI_DK   ASC);
 
 create sequence tjrj.tjrj_sq_taav_dk;
-grant select on tjrj.tjrj_sq_taav_dk to RL_TJRJ_WEBSERV; 
-grant select on tjrj.tjrj_sq_tapr_dk to RL_INTG_JUDI; 
+grant select on tjrj.tjrj_sq_taav_dk to RL_TJRJ_WEBSERV;		-- Usu Integracao
+grant select on tjrj.tjrj_sq_taav_dk to RL_INTG_JUDI;			-- Usu Judicial
 
 GRANT DELETE, INSERT, SELECT, UPDATE ON tjrj.TJRJ_TAG_AVISO TO RL_TJRJ_WEBSERV; 
 GRANT DELETE, INSERT, SELECT, UPDATE ON tjrj.TJRJ_TAG_AVISO to RL_INTG_JUDI; 
