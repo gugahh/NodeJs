@@ -8,9 +8,8 @@ CHECK
 	AVCI_QT_TAGS IS NULL 	OR 
 	AVCI_QT_TAGS = 0		OR 
 	(
-		AVCI_QT_TAGS > 0					AND 
-		AVCI_CD_ID_AVISO_CANCELADO IS NULL 	AND 
-		AVCI_ORGI_DK IS NOT NULL 
+		AVCI_QT_TAGS > 0  AND 
+		AVCI_CD_ID_AVISO_CANCELADO IS NULL 	/* AND AVCI_ORGI_DK IS NOT NULL */
 	)
 );
 
@@ -97,3 +96,20 @@ AS
 		VWAT_TIPO_ASSOCIACAO 	DESC	,
 		VWAT_DS_TAG 			ASC	
 	;
+
+GRANT SELECT ON TJRJ.TJRJ_VW_AVISO_TAG TO RL_TJRJ_WEBSERV;
+GRANT SELECT ON TJRJ.TJRJ_VW_AVISO_TAG TO RL_INTG_JUDI;
+
+COMMENT ON TABLE TJRJ.TJRJ_VW_AVISO_TAG IS 'View que exibe as tags associadas a um aviso ou ao processo associado ao aviso.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_AVISO_TAG.VWAT_AVCI_DK IS 'Id do aviso que está associado a Tags';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_AVISO_TAG.VWAT_TAAV_DK IS 'Id da associação entre um aviso e uma tag. DK da tabela TJRJ_TAG_AVISO.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_AVISO_TAG.VWAT_TGPR_DK IS 'Id da associação entre um processo e uma tag. DK da tabela TJRJ_TAG_PROCESSO_AVISO.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_AVISO_TAG.VWAT_TIPO_ASSOCIACAO IS 'Tipo de associação da tag: (I) associação à Intimacao, (P) associação ao Processo';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_AVISO_TAG.VWAT_ORDENACAO IS 'Ordenção da Tag';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_AVISO_TAG.VWAT_CD_PROCESSO_CNJ IS 'Código do Processo (CNJ) associado ao aviso.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_AVISO_TAG.VWAT_NR_INSTANCIA_PROC IS 'Instância processual associada ao aviso.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_AVISO_TAG.VWAT_TJRA_DK IS 'Id do Processo-aviso ao qual o aviso esta associado. FK para TJRJ_PROCESSO_AVISO.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_AVISO_TAG.VWAT_TACU_DK IS 'Id da tag que está sendo listada. FK para TJRJ_TAG_CUSTOMIZADA.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_AVISO_TAG.VWAT_ORGI_DK IS 'Id do órgão ao qual a tag está associada. Fk para ORGI_ORGAO.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_AVISO_TAG.VWAT_DS_TAG IS 'Texto da Tag. Ex: "Prioridade"';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_AVISO_TAG.VWAT_COR_TAG_HEXA IS 'Cor da Tag sendo lista, em valores hexadecimais.';
