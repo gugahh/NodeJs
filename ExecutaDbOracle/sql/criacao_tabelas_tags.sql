@@ -387,3 +387,42 @@ CREATE OR REPLACE VIEW TJRJ.TJRJ_VW_INTIMACAO (TJIT_NR_PROCESSO, TJIT_NR_PROCESS
                  OR (AOPE.TJAO_TJTC_DK IN (2)
                      AND TRUNC(AVC.AVCI_DT_DISPONIB_INTIMACAO) + 1 + (9 / 24) <
                            SYSDATE));
+
+COMMENT ON TABLE TJRJ.TJRJ_VW_INTIMACAO IS 'View que exibe os avisos/intimações no sistema Integra Judicial.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_NR_PROCESSO IS 'Número (CNJ) do Processo.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_NR_PROCESSO_SF IS 'Número (CNJ) do Processo, porém sem formatação';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_INSTANCIA IS 'Instância Processual a qual foi remetida essa intimação. Domínio: 1, 2. Não aceita nulos.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_CD_ID_AVISO IS 'Identificador do aviso, originário do TJRJ. Corresponde a TJRJ_AVISO_COMUNIC_INTIMACAO.AVCI_CD_ID_AVISO';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_AVCI_DK IS 'Chave primária (DK) do aviso. Corresponde a TJRJ_AVISO_COMUNIC_INTIMACAO.AVCI_DK.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_ULTIMO_STATUS IS 'Status mais recente da intimação, exibido de forma textual.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_DT_EXPEDICAO IS 'Data em que essa intimação foi remetida ao MPRJ.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_DT_ABERTURA_AVISO IS 'Data em que o MPRJ, através de seus membros, deu ciência do recebimento deste aviso.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_ORGI_DK_DISTRIBUICAO IS 'Id do Órgão para o qual o aviso foi distribuído (remetido) por último. Corresponde a ORGI_ORGAO.ORGI_DK.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_NM_ORGAO_DISTRIBUIDO IS 'Nome do Órgão para o qual o aviso foi distribuído (remetido) por último.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_NM_ORGAO_DISTRIB_ABREV IS 'Nome abreviado do Órgão para o qual o aviso foi distribuído (remetido) por último.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_TP_ORGAO IS 'Tipo do órgão para o qual o aviso foi distribuído por último.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_CD_MATRICULA_DISTRIBUICAO IS 'Matrícula do membro do MPRJ que consta como destinatário do aviso';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_NM_MEMBRO_RESPONSAVEL IS 'Nome do membro do MPRJ que consta como destinatário do aviso';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_CD_MATRICULA_ABERTURA IS 'Matrícula do membro do MPRJ que efetivou a abertura do aviso';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_NM_MEMBRO_ABERTURA_AVISO IS 'Nome do membro do MPRJ que efetivou a abertura do aviso';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_CLASSE_DK IS 'Id da Classe do Processo a que se refere este aviso.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_DS_CLASSE_PROCESSO IS 'Descrição da Classe do Processo a que se refere este aviso.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_COMPETENCIA_DK IS 'Código (DK) da competência processual do aviso atual (ex: Criminal, Cível, Família). FK para TJRJ_COMPETENCIA.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_NM_COMPETENCIA IS 'Descrição da competência do aviso atual.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_IN_REU_PRESO IS 'Indicador da existência de réu preso, referente ao processo sendo tratado, no momento do envio deste aviso.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_IN_SIGILOSO IS 'Indica se, pelas regras do sistema, esse aviso deve ser considerado como Sigiloso. Domínio: S/N (sem nulos).';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_IN_IDOSO IS 'Indicador da existência de pessoa idosa, referente ao processo sendo tratado, no momento do envio deste aviso.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_IN_DOENCA_GRAVE IS 'Indicador da existência de portador de doença grave, referente ao processo sendo tratado, no momento do envio deste aviso.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_DT_ULT_REDISTR_ORGAO IS 'Data da última redistribuição deste aviso para órgão de execução.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_IN_TEM_3_INTERESSADO IS 'Indica, para o caso de avisos do PJE, se há ou não informação de 3º interessado válida, no momento da distribuição do aviso.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_IN_1A_VISTA_MPRJ IS 'Indica se esta intimação é a primeira recebida por todo o MPRJ, para o referido processo, na 1ª instância. O valor é sempre Não para a 2ª instância.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_IN_TIPO_PREVENTO IS 'Em desuso. Esta coluna sera removida brevemente.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_IN_TIPO_PREV_POLICIAL IS 'Indicador to tipo de prevento do Integra Policial associado a este aviso. (1) se refere a um prevento de inquérito do Integra Prolicial. (2) indica um prevenção inlcuída manualmente.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_ORGI_PREV_POLICIAL IS 'Código (DK) do órgão associado a uma prevenção do Integra Policial, caso exista uma prevenção.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_NM_ORGI_PREV_POLICIAL IS 'Nome do órgão associado a uma prevenção do Integra Policial, caso exista uma prevenção.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_TJRA_DK IS 'FK para TJRJ.TJRJ_PROCESSO_AVISO.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_QT_TAGS IS 'Quantidade de Tags associadas ao aviso e o respectivo processo, somadas. Útil para otimizar o acesso ao banco de dados no Integra (evita acessos desnecessários).';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_IN_ULT_STAT_REU_PRESO IS 'Situação do processo mais recente obtida sobre o réu estar preso (ou não). Domínio: S/N.';
+COMMENT ON COLUMN TJRJ.TJRJ_VW_INTIMACAO.TJIT_DT_ULT_STAT_REU_PRESO IS 'Data em que foi obtida a situação do processo mais recente sobre o réu estar preso (ou não).';
+
+COMMENT ON COLUMN TJRJ.TJRJ_PROCESSO_AVISO.TJRA_AVCI_ORIG_REU_PRE_DK IS 'Data em que foi obtida a situação do processo mais recente sobre o réu estar preso (ou não)..';
