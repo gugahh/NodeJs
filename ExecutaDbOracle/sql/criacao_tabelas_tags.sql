@@ -45,7 +45,7 @@ AS
 		FROM TJRJ_AVISO_COMUNIC_INTIMACAO avc 
 			inner JOIN TJRJ.TJRJ_TAG_AVISO tgav ON tgav.TAAV_AVCI_DK = avc.AVCI_DK 
 			inner JOIN TJRJ.TJRJ_TAG_CUSTOMIZADA tag ON tag.TACU_DK = TGAV.TAAV_TACU_DK 
-		WHERE tag.TACU_ORGI_DK = avc.AVCI_ORGI_DK -- Exibir apenas tags da ultima distribuicao
+		WHERE tag.TACU_ORGI_DK = avc.AVCI_ORGI_DK 
 		
 		UNION
 		
