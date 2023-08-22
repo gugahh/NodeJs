@@ -91,3 +91,39 @@ COMMENT ON COLUMN TJRJ.TJRJ_VW_AVISO_TAG.VWAT_TACU_DK IS 'Id da tag que está se
 COMMENT ON COLUMN TJRJ.TJRJ_VW_AVISO_TAG.VWAT_ORGI_DK IS 'Id do órgão ao qual a tag está associada. Fk para ORGI_ORGAO.';
 COMMENT ON COLUMN TJRJ.TJRJ_VW_AVISO_TAG.VWAT_DS_TAG IS 'Texto da Tag. Ex: Prioridade';
 COMMENT ON COLUMN TJRJ.TJRJ_VW_AVISO_TAG.VWAT_NM_COR_TAG IS 'Nome da cor a ser aplicada à Tag, de acordo com o padrão da equipe de front-end. Ex: SUCCESS_LIGHTEST.';
+
+CREATE OR REPLACE VIEW TJRJ.TJRJ_VW_AVISO_PROCESSO (TVAP_AVCI_DK, TVAP_CD_ID_AVISO, TVAP_NR_INSTANCIA_PROC, TVAP_CD_PROCESSO_CNJ, TVAP_CD_ORGAO_JULGADOR, TVAP_NM_ORGAO_JULGADOR, TVAP_DS_CLASSE, TVAP_CLASSE_COMPLETA, TVAP_CLDC_DK, TVAP_CD_PROCESSO_TJ, TVAP_CD_PROCESSO_UNICO, TVAP_ORIGEM_INTIMACAO, TVAP_NM_COMPETENCIA, TVAP_TJRA_DK) AS 
+  SELECT 
+            avc.avci_dk AS tvap_avci_dk,
+            avc.avci_cd_id_aviso AS tvap_cd_id_aviso,
+            avc.avci_nr_instancia_proc AS tvap_nr_instancia_proc,
+            avc.avci_cd_processo_cnj AS tvap_cd_processo_cnj,
+            avc.avci_cd_orgao_julgador AS tvap_cd_orgao_julgador,
+            avc.avci_nm_orgao_julgador AS tvap_nm_orgao_julgador,
+            clas.tjcl_ds_classe AS tvap_ds_classe,
+            (    SELECT   REVERSE(SYS_CONNECT_BY_PATH (
+                                     REVERSE (cd.cldc_ds_classe),
+                                     '#'
+                                  ))
+                   FROM   mcpr_classe_docto_mp cd
+                  WHERE   CONNECT_BY_ISLEAF = 1
+             START WITH   cd.cldc_dk = avc.avci_cldc_dk
+             CONNECT BY   PRIOR cd.cldc_cldc_dk_superior = cd.cldc_dk)
+               AS tvap_classe_completa,
+            avc.avci_cldc_dk AS tvap_cldc_dk,
+            avc.avci_cd_processo_tj AS tvap_cd_processo_tj,
+            avc.avci_cd_processo_unico AS tvap_cd_processo_unico,
+            orig.oint_ds_origem AS tvap_origem_intimacao,
+            COMPE.CCIA_NM_COMPETENCIA as tvap_nm_competencia,
+            avc.AVCI_TJRA_DK			AS TVAP_TJRA_DK
+     FROM         tjrj.tjrj_aviso_comunic_intimacao avc
+               LEFT JOIN
+                  tjrj.tjrj_classe clas
+               ON clas.tjcl_cd_classe = avc.avci_cd_classe_tj
+            INNER JOIN
+               tjrj.tjrj_origem_intimacao orig
+            ON orig.oint_dk = avc.avci_oint_dk
+            left join TJRJ.TJRJ_COMPETENCIA compe on COMPE.CCIA_CD_COMPETENCIA =to_number(AVC.AVCI_NR_COMPETENCIA_PROC)
+    WHERE   1 = 1;
+
+COMMENT ON COLUMN TJRJ.TJRJ_VW_AVISO_PROCESSO.TVAP_TJRA_DK IS 'FK para a tabela processo_aviso.';
