@@ -31,10 +31,10 @@ console.log("\nString de Conexão: \t" + p_conn_string);
 console.log("Usuario: \t\t" + p_usuario + "\nSenha: \t\t\t(Foi atribuída)."  + "\n");
 
 	// Correcao
-	// const urlUpdateMovimento = "http://s-tjrj-movimento-processos.apps.ocpn.mprj.mp.br/pje/gravamovimento/";
+	const urlUpdateMovimento = "http://s-tjrj-movimento-processos.apps.ocpn.mprj.mp.br/pje/gravamovimento/";
 
 	// Producao
-	const urlUpdateMovimento = "http://recuperar-movimentos-pje.apps.ocpn.mprj.mp.br/pje/gravamovimento/";
+	// const urlUpdateMovimento = "http://recuperar-movimentos-pje.apps.ocpn.mprj.mp.br/pje/gravamovimento/";
 
 
 async function run() {
@@ -56,7 +56,7 @@ async function run() {
 	// Array que vai conter os nossos processos.
 	let processoList = [];
 
-	const QUANT_MAX_ITENS_PROCESSAM = 5000;
+	const QUANT_MAX_ITENS_PROCESSAM = 10;
 
 	const obtemListaProcessos = async () => {
 			
@@ -92,14 +92,15 @@ async function run() {
 				let movsFilhos = await obtemMovsProcesso(connection, item.NR_PROCESSO);
 				// console.log(movsFilhos);
 
+				// Exclui os movs filhos. Atualizando os Movs do Processo.
 				while ((row = await movsFilhos.resultSet.getRow())) {
 					//console.log("\t\tId mov filho: " + row.ID_MOVIMENTO);
 					await excluiMovimento(connection, 
 						item.NR_PROCESSO, 
-						row.ID_MOVIMENTO);
+						row.ID_MOVIMENTO);						
 				}
 
-				// Exclui os movs filhos. Atualizando os Movs do Processo.
+				// Atualizando os Movs do Processo.
 				const response = await solicitaAtualizarMovimentos(item.NR_PROCESSO);
 				console.log("\tResponse: " + response);
 				console.log("\n\tFinalizado:\t " + getCurrTimestamp());
