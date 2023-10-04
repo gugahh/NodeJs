@@ -31,10 +31,10 @@ console.log("\nString de Conexão: \t" + p_conn_string);
 console.log("Usuario: \t\t" + p_usuario + "\nSenha: \t\t\t(Foi atribuída)."  + "\n");
 
 	// Correcao
-	const urlUpdateMovimento = "http://s-tjrj-movimento-processos.apps.ocpn.mprj.mp.br/pje/gravamovimento/";
+	// const urlUpdateMovimento = "http://s-tjrj-movimento-processos.apps.ocpn.mprj.mp.br/pje/gravamovimento/";
 
 	// Producao
-	// const urlUpdateMovimento = "http://recuperar-movimentos-pje.apps.ocpn.mprj.mp.br/pje/gravamovimento/";
+	const urlUpdateMovimento = "http://recuperar-movimentos-pje.apps.ocpn.mprj.mp.br/pje/gravamovimento/";
 
 
 async function run() {
@@ -56,7 +56,7 @@ async function run() {
 	// Array que vai conter os nossos processos.
 	let processoList = [];
 
-	const QUANT_MAX_ITENS_PROCESSAM = 1000;
+	const QUANT_MAX_ITENS_PROCESSAM = 5000;
 
 	const obtemListaProcessos = async () => {
 			
@@ -69,6 +69,7 @@ async function run() {
 			// console.log(mResultList);
 
 			let row;
+			let contador = 1;
 			
 			while ((row = await result.resultSet.getRow())) {
 				processoList.push(row);
@@ -79,8 +80,8 @@ async function run() {
 			// Utilizar este estilo de loop for para garantir processamento sincrono.
 			for ( const item of processoList ) {
 
-				console.log("\n>> Processando proc: [" + item.NR_PROCESSO_FORMAT 
-				+ "] - total " + item.QUANT + " movimentos;");
+				console.log("\n>> (" + contador + ") Processando proc: [" + item.NR_PROCESSO_FORMAT 
+				+ "] - total " + item.QUANT + " movimento(s);");
 				console.log("\t\tex(1): " + item.MOV_MIN + " - ex(2): " + item.MOV_MAX);
 
 				const currTimestampStr = date.format(new Date(),'ddd, DD/MM/YYYY HH:mm:ss');
@@ -102,6 +103,7 @@ async function run() {
 				const response = await solicitaAtualizarMovimentos(item.NR_PROCESSO);
 				console.log("\tResponse: " + response);
 				console.log("\n\tFinalizado:\t " + getCurrTimestamp());
+				contador++;
 			};
 		};
 	await obtemListaProcessos();
@@ -175,11 +177,11 @@ async function obtemProcessos(connection, quantItens) {
 			  max(PEMO_ID_MOVIMENTO)		AS MOV_MAX				,
 			  PEMO.PEMO_NR_PROCESSO		AS NR_PROCESSO
 		  FROM TJRJ_PJE_MOVIMENTO PEMO
-			  INNER JOIN STATUS_ULT_AVISO SUA
+			  LEFT JOIN STATUS_ULT_AVISO SUA
 				  ON SUA.NR_CNJ_FORMAT = PEMO.PEMO_NR_PROCESSO_FORMAT
 		  WHERE PEMO_COD_MOV_NAC IS NULL 
 		  AND NVL(PEMO_IN_MOV_LOCAL, 'N') = 'N' 
-		  AND SUA.TEIP_DK IN (4, 8) -- Respondida, juntada
+		  -- AND SUA.TEIP_DK IN (4, 8) -- Respondida, juntada
 		  -- AND SUA.TEIP_DK IN (1, 2, 3) -- Pendente, Recebida, Tacita
 		  GROUP BY PEMO.PEMO_NR_PROCESSO_FORMAT, SUA.TEIP_DK, PEMO.PEMO_NR_PROCESSO
 		  -- HAVING count(*) >= 3
