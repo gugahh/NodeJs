@@ -99,8 +99,9 @@ async function run() {
 }
 
 async function executaUmStatement(connection, statemt) {
+
     console.log("\n>>> Executando.");
-  
+
     const result = await connection.execute (
         statemt, {} 
     );
