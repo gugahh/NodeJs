@@ -11,10 +11,18 @@ var p_senha;
 console.log("\n===== Solicita atualizacao de Pecas DCP =====");
 
 // Obtendo definicoes de Banco de Dados a partir da linha de comando.
-if (!Array.isArray(myArgs) || myArgs.length != 3) {
+if (!Array.isArray(myArgs) || myArgs.length != 5) {
   console.error("\n====Erro!====");
-  console.error("* Devem ser informados String de Conexao, usuario e senha como parametros.");
-  console.error("* Exemplo: node obtemClassesJorge.js 10.0.251.32:1521/CORR userX senhaX");
+  
+  console.error("* Devem ser informados os parametros: \n" + 
+     "\t- String de Conexao\n" + 
+     "\t- usuario \n" +
+     "\t- senha \n" +
+     "\t- quant de registros a processar \n" +
+     "\t- pausa entre registros (em millisegundos) \n" +
+    "como parametros.");
+  
+  console.error("* Exemplo: node ajusta_assinatura_pecas.js 10.0.251.32:1521/CORR userX senhaX 10 10");
   console.error("* Obs: Nao utilize espacos na definicao da String de Conexao.\n");
   process.exit();
 }
@@ -22,6 +30,40 @@ if (!Array.isArray(myArgs) || myArgs.length != 3) {
 p_conn_string = myArgs[0];
 p_usuario = myArgs[1];
 p_senha = myArgs[2];
+p_qt_registros = myArgs[3];
+p_pausa = myArgs[4];
+
+// validacoes
+if (isNaN(parseInt(myArgs[3]))) {
+    console.log("O parametro p_qt_registros deve ser um numero inteiro");
+} else {
+    let qt_regs_num = parseInt(myArgs[3]);
+
+    if (qt_regs_num < 0 || qt_regs_num > 1000) {
+        console.log("O valor do parametro p_qt_registros deve ser entre 1  e 1000.");
+    }
+}
+
+if (isNaN(parseInt(myArgs[4]))) {
+    console.log("O parametro p_pausa deve ser um numero inteiro");
+} else {
+    let pausa_num = parseInt(myArgs[4]);
+
+    if (pausa_num < 0 || pausa_num > 1000) {
+        console.log("O valor do parametro p_pausa deve ser entre 1  e 1000 (1 segundo).");
+    }
+}
+// Fim das validacoes
+
+let qt_regs_num = parseInt(myArgs[3]);
+let pausa_num = parseInt(myArgs[4]);
+
+
+	// Correcao
+	const urlUpdatePecas = "http://d-extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/";
+
+	// Producao
+	// const urlUpdatePecas = "http://extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/";
 
 // console.log("\nString de Conexão: \t" + p_conn_string);
 // console.log("Usuario: \t\t" + p_usuario + "\nSenha: \t\t\t(Foi atribuída)."  + "\n");
@@ -42,29 +84,25 @@ async function run() {
 
     //console.log("Conectou ao BD Oracle com sucesso.");
 
-    var idsavisos = [
-      7621937
-    ];
-
-    
 
     // Utilizar este estilo de loop for para garantir processamento sincrono.
-    for ( const aviso of idsavisos ) {
 
-      await delay(10);
+    //console.log(">>> Processando o Aviso: " + aviso);
+    var result = await obtemProcessos(connection, qt_regs_num);
+    // console.log(result);
 
-        //console.log(">>> Processando o Aviso: " + aviso);
-        var result = await obtemProcessos(connection, 20);
-        // console.log(result);
+    let row;
+    // let row = result.resultSet;
+    while ((row = await result.resultSet.getRow())) {
+            // console.log(row);
+            console.log('Processando', `${row.CNJ}`);
+            
+            await solicitaAtualizarProcesso(row.CNJ);
 
-        let row;
-        // let row = result.resultSet;
-        while ((row = await result.resultSet.getRow())) {
-              // console.log(row);
-              console.log(`${row.CNJ}`);
-        }
-
+            await delay(pausa_num);
     };
+
+
 
     console.log("===== Todo o processamento finalizado. =====");
 
@@ -83,6 +121,24 @@ async function run() {
 
 function delay(time) {
   return new Promise(resolve => setTimeout(resolve, time));
+}
+
+async function solicitaAtualizarProcesso(cnj) {
+    // console.log("idProcesso (1): " + idProcesso);
+    const getData = async (idProcesso) => {
+        let urlAtualizada = urlUpdatePecas + cnj;
+        // console.log("URL: " + urlAtualizada);
+        const response = await fetch(urlAtualizada);
+        let resultado;
+        if (response.ok) {
+            resultado = "\tSUCESSO NO UPDATE - Processo: " + cnj;
+        } else {
+            resultado = "\tFALHA NO UPDATE - Processo: " + cnj;
+        }
+        //console.log("\t\t\t\tresponse: " + response);
+        return resultado;
+    };
+    return await getData(idProcesso);
 }
 
 async function obtemProcessos(connection, numRegistros) {
