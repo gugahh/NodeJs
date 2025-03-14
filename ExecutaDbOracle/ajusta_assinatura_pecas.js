@@ -1,6 +1,9 @@
 const oracledb = require('oracledb');
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 
+const fetch = require('cross-fetch');
+
+
 var myArgs = process.argv.slice(2);
 // console.log('myArgs: ', myArgs);
 
@@ -35,22 +38,26 @@ p_pausa = myArgs[4];
 
 // validacoes
 if (isNaN(parseInt(myArgs[3]))) {
-    console.log("O parametro p_qt_registros deve ser um numero inteiro");
+    console.log("ERRO: O parametro p_qt_registros deve ser um numero inteiro");
+    return;
 } else {
     let qt_regs_num = parseInt(myArgs[3]);
 
-    if (qt_regs_num < 0 || qt_regs_num > 1000) {
-        console.log("O valor do parametro p_qt_registros deve ser entre 1  e 1000.");
+    if (qt_regs_num < 1 || qt_regs_num > 33000) {
+        console.log("ERRO: O valor do parametro p_qt_registros deve ser entre 1  e 33000.");
+        return;
     }
 }
 
 if (isNaN(parseInt(myArgs[4]))) {
-    console.log("O parametro p_pausa deve ser um numero inteiro");
+    console.log("ERRO: O parametro p_pausa deve ser um numero inteiro");
+    return;
 } else {
     let pausa_num = parseInt(myArgs[4]);
 
-    if (pausa_num < 0 || pausa_num > 1000) {
-        console.log("O valor do parametro p_pausa deve ser entre 1  e 1000 (1 segundo).");
+    if (pausa_num < 0 || pausa_num > 2000) {
+        console.log("ERRO: O valor do parametro p_pausa deve ser entre 0 e 2000 (2 segundos).");
+        return;
     }
 }
 // Fim das validacoes
@@ -88,8 +95,8 @@ async function run() {
     // Utilizar este estilo de loop for para garantir processamento sincrono.
 
     //console.log(">>> Processando o Aviso: " + aviso);
-    var result = await obtemProcessos(connection, qt_regs_num);
-    // console.log(result);
+    let result = await obtemProcessos(connection, qt_regs_num);
+    //console.log(result);
 
     let row;
     // let row = result.resultSet;
@@ -97,7 +104,8 @@ async function run() {
             // console.log(row);
             console.log('Processando', `${row.CNJ}`);
             
-            await solicitaAtualizarProcesso(row.CNJ);
+            let resultado = await solicitaAtualizarProcesso(row.CNJ);
+            console.log(resultado);
 
             await delay(pausa_num);
     };
@@ -125,7 +133,7 @@ function delay(time) {
 
 async function solicitaAtualizarProcesso(cnj) {
     // console.log("idProcesso (1): " + idProcesso);
-    const getData = async (idProcesso) => {
+    const getData = async (cnj) => {
         let urlAtualizada = urlUpdatePecas + cnj;
         // console.log("URL: " + urlAtualizada);
         const response = await fetch(urlAtualizada);
@@ -138,7 +146,7 @@ async function solicitaAtualizarProcesso(cnj) {
         //console.log("\t\t\t\tresponse: " + response);
         return resultado;
     };
-    return await getData(idProcesso);
+    return await getData(cnj);
 }
 
 async function obtemProcessos(connection, numRegistros) {
@@ -153,7 +161,7 @@ async function obtemProcessos(connection, numRegistros) {
             FROM TJRJ_METADADOS_PECAS_PROCESSO tmpp 
             WHERE 1=1 
                 AND tmpp.MTPP_TTDL_DK = 86
-                -- AND tmpp.MTPP_DT_PESQ_ASSINATURAS IS not NULL
+                AND tmpp.MTPP_DT_PESQ_ASSINATURAS IS NULL
                 AND tmpp.MTPP_DT_INCLUSAO >= to_date('01/01/2024', 'dd/mm/yyyy')
                 AND NOT EXISTS 
                 (
