@@ -75,6 +75,9 @@ let pausa_num = parseInt(myArgs[4]);
 // console.log("\nString de Conexão: \t" + p_conn_string);
 // console.log("Usuario: \t\t" + p_usuario + "\nSenha: \t\t\t(Foi atribuída)."  + "\n");
 
+// Array com os processos a serem, bem, processados.
+let arrProc = [];
+
 async function run() {
 
   let connection;
@@ -101,18 +104,17 @@ async function run() {
     let row;
     // let row = result.resultSet;
     while ((row = await result.resultSet.getRow())) {
+      arrProc.push({cnj: row.CNJ, qtpecas: row.QT_PECAS});
             // console.log(row);
-            console.log('Processando', `${row.CNJ}`);
-            
+            /*
+            console.log(`Processando ${row.CNJ} - quant pecas a processar: ${row.QT_PECAS} `);
+
             let resultado = await solicitaAtualizarProcesso(row.CNJ);
             console.log(resultado);
 
             await delay(pausa_num);
+            */
     };
-
-
-
-    console.log("===== Todo o processamento finalizado. =====");
 
   } catch (err) {
     console.error(err);
@@ -125,7 +127,16 @@ async function run() {
       }
     }
   }
-}
+
+  // Lista de Processos esta pronta. Agora vamos processar de verdade.
+  console.log(`>>> Foram obtidos ${arrProc.length} processos. Iniciando processamento. `);
+
+  myArray.forEach(function(item){
+    console.log(`> CNJ: ${item.cnj}; quant pecas: ${item.qtpecas} `);
+  });
+
+  console.log("<<< ===== Todo o processamento finalizado. =====");
+} // Run 
 
 function delay(time) {
   return new Promise(resolve => setTimeout(resolve, time));
@@ -153,23 +164,27 @@ async function obtemProcessos(connection, numRegistros) {
 
   var result = await connection.execute(
     `
-        SELECT CNJ 
+        SELECT CNJ, QT_PECAS
         FROM 
         (
-            SELECT 
-                DISTINCT(tmpp.MTPP_NR_PROCESSO_CNJ) AS CNJ
-            FROM TJRJ_METADADOS_PECAS_PROCESSO tmpp 
-            WHERE 1=1 
-                AND tmpp.MTPP_TTDL_DK = 86
-                AND tmpp.MTPP_DT_PESQ_ASSINATURAS IS NULL
-                AND tmpp.MTPP_DT_INCLUSAO >= to_date('01/01/2024', 'dd/mm/yyyy')
-                AND NOT EXISTS 
-                (
-                    SELECT 1
-                    FROM TJRJ_METADADOS_PECAS_ASSINAT ASS 
-                    WHERE ASS.MSPA_MTPP_DK = tmpp.MTPP_DK 
-                )
-            ORDER BY 1 ASC 
+          SELECT 
+            tmpp.MTPP_NR_PROCESSO_CNJ 	AS CNJ		,
+            count(1)				AS QT_PECAS
+          --	count(1) AS quant_pecas ,
+          --	count(DISTINCT(tmpp.MTPP_NR_PROCESSO_CNJ)) AS qt_processos
+          FROM TJRJ_METADADOS_PECAS_PROCESSO tmpp 
+          WHERE 1=1 
+            AND tmpp.MTPP_TTDL_DK = 86
+            AND tmpp.MTPP_DT_PESQ_ASSINATURAS IS NULL
+            AND tmpp.MTPP_DT_INCLUSAO >= to_date('01/01/2024', 'dd/mm/yyyy')
+            AND NOT EXISTS 
+            (
+              SELECT 1
+              FROM TJRJ_METADADOS_PECAS_ASSINAT ASS 
+              WHERE ASS.MSPA_MTPP_DK = tmpp.MTPP_DK 
+            )
+          GROUP BY MTPP_NR_PROCESSO_CNJ
+          ORDER BY 1 ASC 
         )
         Where ROWNUM <= :pNumRegistros 
  `,
