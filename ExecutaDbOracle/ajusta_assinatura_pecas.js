@@ -2,6 +2,7 @@ const oracledb = require('oracledb');
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 
 const fetch = require('cross-fetch');
+const date = require('date-and-time');
 
 
 var myArgs = process.argv.slice(2);
@@ -43,8 +44,8 @@ if (isNaN(parseInt(myArgs[3]))) {
 } else {
     let qt_regs_num = parseInt(myArgs[3]);
 
-    if (qt_regs_num < 1 || qt_regs_num > 33000) {
-        console.log("ERRO: O valor do parametro p_qt_registros deve ser entre 1  e 33000.");
+    if (qt_regs_num < 1 || qt_regs_num > 50000) {
+        console.log("ERRO: O valor do parametro p_qt_registros deve ser entre 1  e 50000.");
         return;
     }
 }
@@ -55,8 +56,8 @@ if (isNaN(parseInt(myArgs[4]))) {
 } else {
     let pausa_num = parseInt(myArgs[4]);
 
-    if (pausa_num < 0 || pausa_num > 2000) {
-        console.log("ERRO: O valor do parametro p_pausa deve ser entre 0 e 2000 (2 segundos).");
+    if (pausa_num < 0 || pausa_num > 5000) {
+        console.log("ERRO: O valor do parametro p_pausa deve ser entre 0 e 5000 (5 segundos).");
         return;
     }
 }
@@ -64,6 +65,7 @@ if (isNaN(parseInt(myArgs[4]))) {
 
 let qt_regs_num = parseInt(myArgs[3]);
 let pausa_num = parseInt(myArgs[4]);
+let contador = 0;
 
 
 	// Correcao
@@ -76,7 +78,7 @@ let pausa_num = parseInt(myArgs[4]);
 // console.log("Usuario: \t\t" + p_usuario + "\nSenha: \t\t\t(Foi atribuída)."  + "\n");
 
 // Array com os processos a serem, bem, processados.
-let arrProc = [];
+// let arrProc = [];
 
 async function run() {
 
@@ -92,8 +94,10 @@ async function run() {
             }
         );
 
-    //console.log("Conectou ao BD Oracle com sucesso.");
+    console.log(`Quant Max de Processos a processar: ${qt_regs_num} - pausa entre processos: ${pausa_num} ms`);
 
+    const horInicio = date.format(new Date(),'ddd, DD/MM/YYYY HH:mm:ss');
+    console.log("Horario de inicio:\t " + horInicio + "\n");
 
     // Utilizar este estilo de loop for para garantir processamento sincrono.
 
@@ -104,17 +108,22 @@ async function run() {
     let row;
     // let row = result.resultSet;
     while ((row = await result.resultSet.getRow())) {
-      arrProc.push({cnj: row.CNJ, qtpecas: row.QT_PECAS});
+      // arrProc.push({cnj: row.CNJ, qtpecas: row.QT_PECAS});
             // console.log(row);
-            /*
-            console.log(`Processando ${row.CNJ} - quant pecas a processar: ${row.QT_PECAS} `);
+            contador += 1;
+
+            console.log(`> (${contador})\tProcessando ${row.CNJ} - qt pecas: ${row.QT_PECAS}`);
+            console.log(`\tmttp_dk_min: ${row.MTPP_DK_MIN} - mttp_dk_max: ${row.MTPP_DK_MAX} `);
 
             let resultado = await solicitaAtualizarProcesso(row.CNJ);
-            console.log(resultado);
+            console.log(`\t${resultado}\n`);
 
             await delay(pausa_num);
-            */
     };
+
+    let horFim = date.format(new Date(),'ddd, DD/MM/YYYY HH:mm:ss');
+    console.log("\nFinalizado as:\t " + horFim);
+    console.log("<<< ===== Todo o processamento finalizado. =====");
 
   } catch (err) {
     console.error(err);
@@ -128,14 +137,7 @@ async function run() {
     }
   }
 
-  // Lista de Processos esta pronta. Agora vamos processar de verdade.
-  console.log(`>>> Foram obtidos ${arrProc.length} processos. Iniciando processamento. `);
-
-  myArray.forEach(function(item){
-    console.log(`> CNJ: ${item.cnj}; quant pecas: ${item.qtpecas} `);
-  });
-
-  console.log("<<< ===== Todo o processamento finalizado. =====");
+  
 } // Run 
 
 function delay(time) {
@@ -164,14 +166,14 @@ async function obtemProcessos(connection, numRegistros) {
 
   var result = await connection.execute(
     `
-        SELECT CNJ, QT_PECAS
+        SELECT CNJ, QT_PECAS, MTPP_DK_MIN, MTPP_DK_MAX
         FROM 
         (
           SELECT 
-            tmpp.MTPP_NR_PROCESSO_CNJ 	AS CNJ		,
-            count(1)				AS QT_PECAS
-          --	count(1) AS quant_pecas ,
-          --	count(DISTINCT(tmpp.MTPP_NR_PROCESSO_CNJ)) AS qt_processos
+            tmpp.MTPP_NR_PROCESSO_CNJ 	AS CNJ		      ,
+            count(1)				            AS QT_PECAS     ,
+            min(tmpp.MTPP_DK)           as MTPP_DK_MIN  ,
+            max(tmpp.MTPP_DK)           as MTPP_DK_MAX  
           FROM TJRJ_METADADOS_PECAS_PROCESSO tmpp 
           WHERE 1=1 
             AND tmpp.MTPP_TTDL_DK = 86
