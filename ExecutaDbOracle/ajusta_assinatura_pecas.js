@@ -69,10 +69,10 @@ let contador = 0;
 
 
 	// Correcao
-	const urlUpdatePecas = "http://d-extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/";
+	// const urlUpdatePecas = "http://d-extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/";
 
 	// Producao
-	// const urlUpdatePecas = "http://extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/";
+	const urlUpdatePecas = "http://extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/";
 
 // console.log("\nString de Conexão: \t" + p_conn_string);
 // console.log("Usuario: \t\t" + p_usuario + "\nSenha: \t\t\t(Foi atribuída)."  + "\n");
@@ -113,7 +113,8 @@ async function run() {
             contador += 1;
 
             console.log(`> (${contador})\tProcessando ${row.CNJ} - qt pecas: ${row.QT_PECAS}`);
-            console.log(`\tmttp_dk_min: ${row.MTPP_DK_MIN} - mttp_dk_max: ${row.MTPP_DK_MAX} `);
+            console.log(`\tmttp_dk_min: ${row.MTPP_DK_MIN} - mttp_dk_max: ${row.MTPP_DK_MAX} - sigilo: ${row.SIGILO} `);
+            console.log(`\tfolha virt min: ${row.NR_FOLHA_VIRT_MIN} - folha virt max: ${row.NR_FOLHA_VIRT_MIN}`);
 
             let resultado = await solicitaAtualizarProcesso(row.CNJ);
             console.log(`\t${resultado}\n`);
@@ -166,17 +167,21 @@ async function obtemProcessos(connection, numRegistros) {
 
   var result = await connection.execute(
     `
-        SELECT CNJ, QT_PECAS, MTPP_DK_MIN, MTPP_DK_MAX
+        SELECT CNJ, QT_PECAS, MTPP_DK_MIN, MTPP_DK_MAX, SIGILO, NR_FOLHA_VIRT_MIN, NR_FOLHA_VIRT_MAX
         FROM 
         (
           SELECT 
-            tmpp.MTPP_NR_PROCESSO_CNJ 	AS CNJ		      ,
-            count(1)				            AS QT_PECAS     ,
-            min(tmpp.MTPP_DK)           as MTPP_DK_MIN  ,
-            max(tmpp.MTPP_DK)           as MTPP_DK_MAX  
+            tmpp.MTPP_NR_PROCESSO_CNJ 	  as CNJ		        ,
+            count(1)				              as QT_PECAS       ,
+            min(tmpp.MTPP_DK)             as MTPP_DK_MIN    ,
+            max(tmpp.MTPP_DK)             as MTPP_DK_MAX    ,
+            min(tmpp.MTPP_IN_SIGILO)      as SIGILO         ,
+            min(tmpp.MTPP_NR_FOLHA_VIRTUAL)  as NR_FOLHA_VIRT_MIN  ,
+            max(tmpp.MTPP_NR_FOLHA_VIRTUAL)  as NR_FOLHA_VIRT_MAX  
           FROM TJRJ_METADADOS_PECAS_PROCESSO tmpp 
           WHERE 1=1 
             AND tmpp.MTPP_TTDL_DK = 86
+            AND	tmpp.MTPA_DT_EXCLUSAO_PECA IS NULL 
             AND tmpp.MTPP_DT_PESQ_ASSINATURAS IS NULL
             AND tmpp.MTPP_DT_INCLUSAO >= to_date('01/01/2024', 'dd/mm/yyyy')
             AND NOT EXISTS 
