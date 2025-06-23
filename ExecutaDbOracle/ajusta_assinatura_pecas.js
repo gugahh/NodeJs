@@ -114,7 +114,7 @@ async function run() {
 
             console.log(`> (${contador})\tProcessando ${row.CNJ} - qt pecas: ${row.QT_PECAS}`);
             console.log(`\tmttp_dk_min: ${row.MTPP_DK_MIN} - mttp_dk_max: ${row.MTPP_DK_MAX} - sigilo: ${row.SIGILO} `);
-            console.log(`\tfolha virt min: ${row.NR_FOLHA_VIRT_MIN} - folha virt max: ${row.NR_FOLHA_VIRT_MIN}`);
+            console.log(`\tfolha virt min: ${row.NR_FOLHA_VIRT_MIN} - folha virt max: ${row.NR_FOLHA_VIRT_MIN} - dt peca min: ${date.format(row.DT_PECA_MIN,'DD/MM/YYYY')}`);  
 
             let resultado = await solicitaAtualizarProcesso(row.CNJ);
             console.log(`\t${resultado}\n`);
@@ -167,7 +167,7 @@ async function obtemProcessos(connection, numRegistros) {
 
   var result = await connection.execute(
     `
-        SELECT CNJ, QT_PECAS, MTPP_DK_MIN, MTPP_DK_MAX, SIGILO, NR_FOLHA_VIRT_MIN, NR_FOLHA_VIRT_MAX
+        SELECT CNJ, QT_PECAS, MTPP_DK_MIN, MTPP_DK_MAX, SIGILO, NR_FOLHA_VIRT_MIN, NR_FOLHA_VIRT_MAX, DT_PECA_MIN
         FROM 
         (
           SELECT 
@@ -177,7 +177,8 @@ async function obtemProcessos(connection, numRegistros) {
             max(tmpp.MTPP_DK)             as MTPP_DK_MAX    ,
             min(tmpp.MTPP_IN_SIGILO)      as SIGILO         ,
             min(tmpp.MTPP_NR_FOLHA_VIRTUAL)  as NR_FOLHA_VIRT_MIN  ,
-            max(tmpp.MTPP_NR_FOLHA_VIRTUAL)  as NR_FOLHA_VIRT_MAX  
+            max(tmpp.MTPP_NR_FOLHA_VIRTUAL)  as NR_FOLHA_VIRT_MAX ,
+            MIN(tmpp.MTPP_DT_DOCUMENTO)     as DT_PECA_MIN
           FROM TJRJ_METADADOS_PECAS_PROCESSO tmpp 
           WHERE 1=1 
             AND tmpp.MTPP_TTDL_DK = 86
