@@ -129,9 +129,9 @@ BEGIN
 			
 			w_tpif_dk := NULL;
 		
-			dbms_output.put_line(chr(13) || '(' || to_char(idx) 
-				|| ') orgi_dk: ' || to_char(cc1.ORGI_DK) 
-				|| ' - nm_orgao: ' || cc1.NM_ORGAO);
+--			dbms_output.put_line(chr(13) || '(' || to_char(idx) 
+--				|| ') orgi_dk: ' || to_char(cc1.ORGI_DK) 
+--				|| ' - nm_orgao: ' || cc1.NM_ORGAO);
 			
 			-- TODO: Atualizacao, aqui.
 			OPEN CUR_TAGS_P_ORGAO(cc1.ORGI_DK);
@@ -144,7 +144,8 @@ BEGIN
 				idx_tag := idx_tag + 1;
 				
 				w_id_painel_tag := NULL;
-				w_tpif_dk := ROW_F.TPIF_DK;	
+				w_tpif_dk 			:= ROW_F.TPIF_DK;	
+				w_id_painel_tag		:= ROW_F.PITA_DK;
 				
 				IF (w_tpif_dk IS null) THEN 
 					-- Ainda nao existe painel principal para esse orgao / instancia. Cadastrando;
