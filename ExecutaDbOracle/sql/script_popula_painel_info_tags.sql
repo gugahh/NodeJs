@@ -111,7 +111,95 @@ DECLARE
 				pita.PITA_QT_AVI_ASSOC_AMBOS	= 0
 		where	pita.PITA_QT_AVI_ASSOC_TOTAL > 0;	
 		COMMIT;
-	END;
+	END PRC_LIMPA_PAINEL_TAG;
+	
+	-- Verifica e retorna a associacao entre um tag (tacu_dk) e um painel (orgao + instancia) (tpif_dk).
+	-- Se nao existir o registro do painel de tags que associa a tag ao orgao + instancia, retorna nulo.
+	FUNCTION fc_aux_obtem_pita_dk(p_tpif_dk in number, p_tacu_dk in number) 
+		return NUMBER 
+	IS 
+			w_pita_dk 			NUMBER;
+			w_quant_registro	NUMBER;
+	BEGIN
+		Select	min(PITA_DK), count(1)
+		into 	w_pita_dk	, w_quant_registro
+		From TJRJ.TJRJ_PAINEL_INFO_TAG pita
+		where	pita.PITA_TPIF_DK 	= p_tpif_dk  
+		and 	pita.PITA_TACU_DK 	= p_tacu_dk;
+
+		return w_pita_dk;
+	END fc_aux_obtem_pita_dk;
+	
+
+	-- Obtem (ou cria, se nessario) o Painel Informativo para uma tag, dado o Painel Informativo "pai", e a tag.
+	-- Retorna: DK de TJRJ_PAINEL_INFO_TAG.
+	function fc_obtem_painel_info_tag 
+	(
+		p_tpif_dk		in NUMBER		,
+		p_tacu_dk		in NUMBER		, 
+		p_avci_dk 		in NUMBER		
+	)
+	return NUMBER
+	IS 
+		PRAGMA AUTONOMOUS_TRANSACTION;
+		
+		w_pita_dk			NUMBER;
+		w_quant_registro	NUMBER;
+	begin 
+		-- Existe o registro do painel de tag, para a tag / orgao + istancia fornecedidos??
+		w_pita_dk := fc_aux_obtem_pita_dk(p_tpif_dk, p_tacu_dk);
+		
+		if (w_pita_dk is not null) then 
+			return w_pita_dk;
+		end if;
+		
+		-- Nao existe. Cadastrando.
+		BEGIN
+			SELECT TJRJ.TJRJ_SQ_PIQM_DK.NEXTVAL 
+			INTO w_pita_dk 
+			FROM DUAL;
+					
+			INSERT INTO TJRJ.TJRJ_PAINEL_INFO_TAG
+			(	
+				PITA_DK 				, 
+				PITA_TPIF_DK 			, 
+				PITA_TACU_DK 			, 
+				PITA_QT_AVI_ASSOC_PROC 	, 
+				PITA_QT_AVI_ASSOC_AVISO , 
+				PITA_QT_AVI_ASSOC_AMBOS , 
+				PITA_DT_INCLUSAO 		
+			)
+			VALUES 
+			(
+				w_pita_dk				,	
+				p_tpif_dk				,	  
+				p_tacu_dk				,	 
+				0						,	 
+				0						,	 
+				0						,	 
+				SYSDATE						  
+			);
+			COMMIT; -- Transacao autonoma 
+			
+		Exception
+			When DUP_VAL_ON_INDEX then
+				rollback;
+				-- Ocorreu um erro de concorrencia. Eh esperado. Nao se deve incluir o novo registro
+				-- de TJRJ_PAINEL_INFO_TAG, e deve retornar o PITA_DK criado pelo processo concorrente.
+				w_pita_dk := fc_aux_obtem_pita_dk(p_tpif_dk, p_tacu_dk);
+			When others then
+				w_pita_dk := null;
+				dbms_output.put_line(
+					'Excessao nao prevista; ' || 
+			    	'Params: p_tpif_dk: ' || to_char(p_tpif_dk) || 
+					' - p_tacu_dk: '	|| to_char(p_tacu_dk) || 
+					' - p_avci_dk: '	|| to_char(p_avci_dk) || 
+					' - Erro: ' || sqlerrm  
+				);
+				ROLLBACK;
+		END;
+		return w_pita_dk;	 
+	end fc_obtem_painel_info_tag;
 	
 BEGIN 
 		dbms_output.put_line('>>> Iniciando procedimento.');  
@@ -160,7 +248,7 @@ BEGIN
 				
 				IF (w_id_painel_tag IS NULL) THEN
 					-- ainda nao existe painel informativo para essa tag / instancia / orgao de execucao
-					w_id_painel_tag := TJRJ.TJRJ_PA_PAINEL_INFO.fc_obtem_painel_info_tag 
+					w_id_painel_tag := fc_obtem_painel_info_tag 
 						(
 							p_tpif_dk		=> w_tpif_dk		,
 							p_tacu_dk		=> ROW_F.TACU_DK	,
