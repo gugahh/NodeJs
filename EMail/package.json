@@ -1,0 +1,16 @@
+{
+  "name": "email",
+  "version": "1.0.0",
+  "main": "emailsendertest.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "description": "",
+  "dependencies": {
+    "nodemailer": "^7.0.5"
+  }
+}
