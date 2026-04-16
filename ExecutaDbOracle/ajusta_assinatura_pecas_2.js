@@ -19,7 +19,7 @@ console.log("\n===== Solicita atualizacao de Assinatura de Pecas do DCP (2) ====
 const urlUpdatePecas = 'http://d-extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento';
 
 // Producao
-const urlUpdatePecas = "http://extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento";
+// const urlUpdatePecas = "http://extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento";
 
 
 // Obtendo definicoes de Banco de Dados a partir da linha de comando.
@@ -62,7 +62,7 @@ if (isNaN(parseInt(p_qt_registros))) {
 
 // Validando o trimestre
 const regexTrimestre = /^\d{4}-[1-4]$/;
-if (!regex.test(p_trimestre)) {
+if (!regexTrimestre.test(p_trimestre)) {
     console.log("ERRO: O parametro p_trimestre deve estar na mascara YYYY-Q (ex: 2025-1).");
     return;
 }
@@ -105,6 +105,7 @@ async function run() {
             }
         );
 
+    console.log(`Trimestre selecionado: ${p_trimestre}`);
     console.log(`Quant Max de Processos a processar: ${qt_regs_num} - pausa entre processos: ${pausa_num} ms`);
 
     const horInicio = date.format(new Date(),'ddd, DD/MM/YYYY HH:mm:ss');
@@ -113,7 +114,7 @@ async function run() {
     // Utilizar este estilo de loop for para garantir processamento sincrono.
 
     //console.log(">>> Processando o Aviso: " + aviso);
-    let result = await obtemProcessos(connection, qt_regs_num, trimestre);
+    let result = await obtemProcessos(connection, qt_regs_num, p_trimestre);
     //console.log(result);
 
     let row;
@@ -172,8 +173,8 @@ async function solicitaAtualizarPeca(cnj, id_documento) {
             resultado = "\tFALHA NO UPDATE - Processo: " + cnj;
         }
 
-        console.log("\t\t\t\tresponse: ");
-        console.log(await response.json());
+        // console.log("\t\t\t\tresponse: ");
+        // console.log(await response.json());
         // resultado = 'OK';
         return resultado;
     };
