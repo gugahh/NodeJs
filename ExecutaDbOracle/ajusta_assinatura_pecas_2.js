@@ -13,7 +13,14 @@ var p_conn_string
 var p_usuario;
 var p_senha;
 
-console.log("\n===== Solicita atualizacao de Pecas DCP (2) =====");
+console.log("\n===== Solicita atualizacao de Assinatura de Pecas do DCP (2) =====");
+
+// Servico -  Correcao:
+const urlUpdatePecas = 'http://d-extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento';
+
+// Producao
+// const urlUpdatePecas = "";
+
 
 // Obtendo definicoes de Banco de Dados a partir da linha de comando.
 if (!Array.isArray(myArgs) || myArgs.length != 5) {
@@ -68,13 +75,6 @@ let qt_regs_num = parseInt(myArgs[3]);
 let pausa_num = parseInt(myArgs[4]);
 let contador = 0;
 
-
-	// Correcao
-	const urlUpdatePecas = 'http://d-extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/$s/$s';
-
-	// Producao
-	// const urlUpdatePecas = "";
-
 // console.log("\nString de Conexão: \t" + p_conn_string);
 // console.log("Usuario: \t\t" + p_usuario + "\nSenha: \t\t\t(Foi atribuída)."  + "\n");
 
@@ -115,9 +115,9 @@ async function run() {
 
             console.log(`> (${contador})\tProcessando ${row.CNJ} - id documento: ${row.ID_DOCUMENTO}`);
             console.log(`\tmttp_dk: ${row.MTPP_DK} - sigilo: ${row.SIGILO} `);
-            console.log(`\tfolha virt: ${row.NR_FOLHA_VIRT_MIN} - dt peca: ${date.format(row.DT_PECA,'DD/MM/YYYY')}`);  
+            console.log(`\tfolha virt: ${row.NR_FOLHA_VIRT} - dt peca: ${date.format(row.DT_PECA,'DD/MM/YYYY')}`);  
 
-            let resultado = await solicitaAtualizarPeca(row.CNJ);
+            let resultado = await solicitaAtualizarPeca(row.CNJ, row.ID_DOCUMENTO);
             console.log(`\t${resultado}\n`);
 
             await delay(pausa_num);
@@ -147,11 +147,13 @@ function delay(time) {
 }
 
 async function solicitaAtualizarPeca(cnj, id_documento) {
-    // console.log("idProcesso (1): " + idProcesso);
+
     const getData = async (cnj) => {
-        let urlAtualizada = util.format(urlUpdatePecas, cnj, id_documento);
-        console.log("URL: " + urlAtualizada);
-        /*
+        let urlAtualizada = urlUpdatePecas
+          .replace('?cnj', cnj)
+          .replace('?id_documento', id_documento);
+        // console.log("URL: " + urlAtualizada);
+
         const response = await fetch(urlAtualizada);
         let resultado;
         if (response.ok) {
@@ -159,9 +161,10 @@ async function solicitaAtualizarPeca(cnj, id_documento) {
         } else {
             resultado = "\tFALHA NO UPDATE - Processo: " + cnj;
         }
-            */
-        //console.log("\t\t\t\tresponse: " + response);
-        resultado = 'OK';
+
+        console.log("\t\t\t\tresponse: ");
+        console.log(await response.json());
+        // resultado = 'OK';
         return resultado;
     };
     return await getData(cnj);
