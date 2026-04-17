@@ -16,10 +16,10 @@ var p_senha;
 console.log("\n===== Solicita atualizacao de Assinatura de Pecas do DCP (2) =====");
 
 // Servico -  Correcao:
-const urlUpdatePecas = 'http://d-extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento';
+// const urlUpdatePecas = 'http://d-extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento';
 
 // Producao
-// const urlUpdatePecas = "http://extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento";
+const urlUpdatePecas = "http://extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento";
 
 
 // Obtendo definicoes de Banco de Dados a partir da linha de comando.
@@ -52,10 +52,10 @@ if (isNaN(parseInt(p_qt_registros))) {
     console.log("ERRO: O parametro p_qt_registros deve ser um numero inteiro");
     return;
 } else {
-    let qt_regs_num = parseInt(myArgs[3]);
+    let qt_regs_num = parseInt(p_qt_registros);
 
-    if (qt_regs_num < 1 || qt_regs_num > 50000) {
-        console.log("ERRO: O valor do parametro p_qt_registros deve ser entre 1  e 50000.");
+    if (qt_regs_num < 1 || qt_regs_num > 1000000) {
+        console.log("ERRO: O valor do parametro p_qt_registros deve ser entre 1  e 100000.");
         return;
     }
 }
@@ -72,7 +72,7 @@ if (isNaN(parseInt(p_pausa))) {
     console.log("ERRO: O parametro p_pausa deve ser um numero inteiro");
     return;
 } else {
-    let pausa_num = parseInt(myArgs[4]);
+    let pausa_num = parseInt(p_pausa);
 
     if (pausa_num < 0 || pausa_num > 5000) {
         console.log("ERRO: O valor do parametro p_pausa deve ser entre 0 e 5000 (5 segundos).");
@@ -124,8 +124,8 @@ async function run() {
             // console.log(row);
             contador += 1;
 
-            console.log(`> (${contador})\tProcessando ${row.CNJ} - id documento: ${row.ID_DOCUMENTO}`);
-            console.log(`\tmttp_dk: ${row.MTPP_DK} - sigilo: ${row.SIGILO} `);
+            console.log(`> (${contador}) - (${row.TRIMESTRE_DT_INC})\tProcessando ${row.CNJ} - id doc: ${row.ID_DOCUMENTO}`);
+            console.log(`\ttmttp_dk: ${row.MTPP_DK} - sigilo: ${row.SIGILO} `);
             console.log(`\tfolha virt: ${row.NR_FOLHA_VIRT} - dt peca: ${date.format(row.DT_PECA,'DD/MM/YYYY')}`);  
 
             let resultado = await solicitaAtualizarPeca(row.CNJ, row.ID_DOCUMENTO);
@@ -209,7 +209,7 @@ async function obtemProcessos(connection, numRegistros, trimestre) {
         REGEXP_LIKE (MTPP_DS_DESCRICAO_DOCUMENTO,'[A-Za-z]') 
 		  )
       AND tmpp.MTPP_TTDL_DK not in ( 92, 179, 86, 187 )
-      and to_char(tmpp.MTPP_DT_INCLUSAO, 'YYYY-Q') = :pTrimestre
+      and to_char(tmpp.MTPP_DT_INCLUSAO, 'YYYY-Q') >= :pTrimestre
       AND NOT EXISTS 
       (
         SELECT 1
@@ -217,6 +217,7 @@ async function obtemProcessos(connection, numRegistros, trimestre) {
         WHERE ASS.MSPA_MTPP_DK = tmpp.MTPP_DK 
       )
       AND ROWNUM <= :pNumRegistros 
+      order by tmpp.MTPP_DT_INCLUSAO desc 
  `,
      {pNumRegistros: numRegistros, pTrimestre: trimestre},  
      {
