@@ -118,7 +118,7 @@ function generateMonthlyDates(endDateStr, startDateStr) {
   return result;
 }
 
-async function processaAnoMes(anoMes) {
+async function processaAnoMes(connection, anoMes) {
 // Utilizar este estilo de loop for para garantir processamento sincrono.
 
     let result = await obtemProcessos(connection, qt_regs_num, anoMes); 
@@ -171,10 +171,10 @@ async function run() {
 
     // Criando a lista de meses a serem processados
     listaAnosMeses = generateMonthlyDates(p_ano_mes_fim, p_ano_mes_ini);
-    print(listaAnosMeses);
+    console.log(listaAnosMeses);
 
     for (const anoMes of listaAnosMeses) {
-       await processaAnoMes(anoMes);
+       await processaAnoMes(connection, anoMes);
     };
 
     let horFim = date.format(new Date(),'ddd, DD/MM/YYYY HH:mm:ss');
