@@ -20,10 +20,10 @@ console.log("Posteriormente serao verificados quais meses possuem Peças invalid
 console.log("porem cujas assinaturas nao haviam sido gravadas.");
 
 // Servico -  Correcao:
-const urlUpdatePecas = 'http://d-extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento';
+// const urlUpdatePecas = 'http://d-extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento';
 
 // Producao
-// const urlUpdatePecas = "http://extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento";
+const urlUpdatePecas = "http://extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento";
 
 
 // Obtendo definicoes de Banco de Dados a partir da linha de comando.
@@ -128,8 +128,8 @@ async function processaAnoMes(connection, anoMes) {
     let row;
 
     // Arquivo que vai armazenar as pecas processadas.
-    let nomeArquivoIdsProc = './exploratorio/lista_pecas_proc_' + anoMes + '.txt';
-    await fs.writeFileSync(nomeArquivoIdsProc, '--- Ano-Mes: ' + anoMes + '---\n\n'); //Cria o arquivo.
+    //let nomeArquivoIdsProc = './exploratorio/lista_pecas_proc_' + anoMes + '.txt';
+    //await fs.writeFileSync(nomeArquivoIdsProc, '--- Ano-Mes: ' + anoMes + '---\n\n'); //Cria o arquivo.
 
     while ((row = await result.resultSet.getRow())) {
             // console.log(row);
@@ -143,8 +143,7 @@ async function processaAnoMes(connection, anoMes) {
             let resultado = await solicitaAtualizarPeca(row.CNJ, row.ID_DOCUMENTO);
             console.log(`\t${resultado}\n`);
 
-            //fs.appendFileSync('lista_pecas_proc' + anoMes + '.txt', row.MTPP_DK + ',\n'); // Sincrono
-            fs.appendFileSync(nomeArquivoIdsProc, row.MTPP_DK + ' ,\n'); //Grava no arquivo de ids, assincronamente.
+            //fs.appendFileSync(nomeArquivoIdsProc, row.MTPP_DK + ' ,\n'); //Grava no arquivo de ids, assincronamente.
 
             await delay(pausa_num);
     };
