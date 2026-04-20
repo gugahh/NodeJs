@@ -95,7 +95,6 @@ if (isNaN(parseInt(p_pausa))) {
 
 let qt_regs_num = parseInt(p_qt_registros);
 let pausa_num = parseInt(p_pausa);
-let contador = 0;
 
 // console.log("\nString de Conexão: \t" + p_conn_string);
 // console.log("Usuario: \t\t" + p_usuario + "\nSenha: \t\t\t(Foi atribuída)."  + "\n");
@@ -120,6 +119,8 @@ function generateMonthlyDates(endDateStr, startDateStr) {
 
 async function processaAnoMes(connection, anoMes) {
 // Utilizar este estilo de loop for para garantir processamento sincrono.
+    console.log('\n>>> Processando o Ano-Mes: ' + anoMes + '\n');
+    let contador = 0;
 
     let result = await obtemProcessos(connection, qt_regs_num, anoMes); 
     //console.log(result);
@@ -127,11 +128,12 @@ async function processaAnoMes(connection, anoMes) {
     let row;
 
     // Arquivo que vai armazenar as pecas processadas.
-    let nomeArquivoIdsProc = 'lista_pecas_proc_' + anoMes + '.txt';
-    await fs.writeFileSync(nomeArquivoIdsProc, ''); //Cria o arquivo.
+    let nomeArquivoIdsProc = './exploratorio/lista_pecas_proc_' + anoMes + '.txt';
+    await fs.writeFileSync(nomeArquivoIdsProc, '--- Ano-Mes: ' + anoMes + '---\n\n'); //Cria o arquivo.
 
     while ((row = await result.resultSet.getRow())) {
             // console.log(row);
+
             contador += 1;
 
             console.log(`> (${contador}) - (${row.ANO_MES})\tProcessando ${row.CNJ} - id doc: ${row.ID_DOCUMENTO}`);
