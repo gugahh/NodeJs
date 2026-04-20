@@ -16,7 +16,7 @@ var p_senha;
 console.log("\n===== Solicita atualizacao de Assinatura de Pecas do DCP (3) =====");
 console.log("Versao exploratoria - processa X pecas (param) de um determinado ano/mes, e grava os IDs num arquivo texto.");
 console.log("Posteriormente serao verificados quais meses possuem Peças invalidas (pesquisadas, ");
-consolelog("porem cujas assinaturas nao haviam sido gravadas.");
+console.log("porem cujas assinaturas nao haviam sido gravadas.");
 
 // Servico -  Correcao:
 const urlUpdatePecas = 'http://d-extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento';
@@ -64,7 +64,7 @@ if (isNaN(parseInt(p_qt_registros))) {
 }
 
 // Validando o ano-mes 
-const regexAnoMes = /^\d{4}-[1-12]$/;
+const regexAnoMes = /^\d{4}-[0-1][0-9]$/;
 if (!regexAnoMes.test(p_ano_mes)) {
     console.log("ERRO: O parametro p_ano_mes deve estar na mascara YYYY-MM (ex: 2025-12).");
     return;
@@ -125,7 +125,7 @@ async function run() {
 
     // Arquivo que vai armazenar as pecas processadas.
     let nomeArquivoIdsProc = 'lista_pecas_proc_' + p_ano_mes + '.txt';
-    await fs.writeFile(nomeArquivoIdsProc, ''); //Cria o arquivo.
+    await fs.writeFileSync(nomeArquivoIdsProc, ''); //Cria o arquivo.
 
     while ((row = await result.resultSet.getRow())) {
             // console.log(row);
@@ -139,7 +139,7 @@ async function run() {
             console.log(`\t${resultado}\n`);
 
             //fs.appendFileSync('lista_pecas_proc' + p_ano_mes + '.txt', row.MTPP_DK + ',\n'); // Sincrono
-            fs.appendFile(nomeArquivoIdsProc, row.MTPP_DK + ' ,\n'); //Grava no arquivo de ids, assincronamente.
+            fs.appendFileSync(nomeArquivoIdsProc, row.MTPP_DK + ' ,\n'); //Grava no arquivo de ids, assincronamente.
 
             await delay(pausa_num);
     };
