@@ -5,6 +5,7 @@ const fetch = require('cross-fetch');
 const date = require('date-and-time');
 const util = require('util')
 const fs = require('fs');
+const datefns = require('date-fns');
 
 var myArgs = process.argv.slice(2);
 // console.log('myArgs: ', myArgs);
@@ -14,7 +15,7 @@ var p_usuario;
 var p_senha;
 
 console.log("\n===== Solicita atualizacao de Assinatura de Pecas do DCP (3) =====");
-console.log("Versao exploratoria - processa X pecas (param) de um determinado ano/mes, e grava os IDs num arquivo texto.");
+console.log("Versao exploratoria - processa X pecas (param) de um determinado ano/mes final ate um ano/mes inicial, e grava os IDs num arquivo texto.");
 console.log("Posteriormente serao verificados quais meses possuem Peças invalidas (pesquisadas, ");
 console.log("porem cujas assinaturas nao haviam sido gravadas.");
 
@@ -26,19 +27,20 @@ const urlUpdatePecas = 'http://d-extrair-assinatura-digital-peca-dcp.apps.ocpn.m
 
 
 // Obtendo definicoes de Banco de Dados a partir da linha de comando.
-if (!Array.isArray(myArgs) || myArgs.length != 6) {
+if (!Array.isArray(myArgs) || myArgs.length != 7) {
   console.error("\n====Erro!====");
   
   console.error("* Devem ser informados os parametros: \n" + 
      "\t- String de Conexao\n" + 
      "\t- usuario \n" +
      "\t- senha \n" +
-     "\t- ano_mes desejado\n" +
+     "\t- ano_mes inicial\n" +
+     "\t- ano_mes final\n" +
      "\t- quant de registros a processar \n" +
      "\t- pausa entre registros (em millisegundos) \n" +
     "como parametros.");
   
-  console.error("* Exemplo: node ajusta_assinatura_pecas.js 10.0.251.32:1521/CORR userX senhaX 10 10");
+  console.error("* Exemplo: node ajusta_assinatura_pecas.js 10.0.251.32:1521/CORR userX senhaX 2026-04 2024-01 10 10");
   console.error("* Obs: Nao utilize espacos na definicao da String de Conexao.\n");
   process.exit();
 }
@@ -46,9 +48,10 @@ if (!Array.isArray(myArgs) || myArgs.length != 6) {
 p_conn_string = myArgs[0];
 p_usuario = myArgs[1];
 p_senha = myArgs[2];
-p_ano_mes = myArgs[3];
-p_qt_registros = myArgs[4];
-p_pausa = myArgs[5];
+p_ano_mes_ini = myArgs[3];
+p_ano_mes_fim = myArgs[4];
+p_qt_registros = myArgs[5];
+p_pausa = myArgs[6];
 
 // validacoes
 if (isNaN(parseInt(p_qt_registros))) {
@@ -63,10 +66,16 @@ if (isNaN(parseInt(p_qt_registros))) {
     }
 }
 
-// Validando o ano-mes 
+// Validando o ano-mes inicial
 const regexAnoMes = /^\d{4}-[0-1][0-9]$/;
-if (!regexAnoMes.test(p_ano_mes)) {
-    console.log("ERRO: O parametro p_ano_mes deve estar na mascara YYYY-MM (ex: 2025-12).");
+if (!regexAnoMes.test(p_ano_mes_ini)) {
+    console.log("ERRO: O parametro p_ano_mes_ini deve estar na mascara YYYY-MM (ex: 2025-12).");
+    return;
+}
+
+// Validando o ano-mes final
+if (!regexAnoMes.test(p_ano_mes_fim)) {
+    console.log("ERRO: O parametro p_ano_mes_fim deve estar na mascara YYYY-MM (ex: 2025-12).");
     return;
 }
 
@@ -94,6 +103,51 @@ let contador = 0;
 // Array com os processos a serem, bem, processados.
 // let arrProc = [];
 
+// Gera uma lista de todos os anos-mes, da final para o inicial.
+function generateMonthlyDates(endDateStr, startDateStr) {
+  const result = [];
+  
+  let current = new Date(endDateStr + '-01');
+  const start = new Date(startDateStr + '-01');
+  
+  while (!datefns.isAfter(start, current)) {
+    result.push(datefns.format(current, 'yyyy-MM'));
+    current = datefns.subMonths(current, 1);
+  }
+  
+  return result;
+}
+
+async function processaAnoMes(anoMes) {
+// Utilizar este estilo de loop for para garantir processamento sincrono.
+
+    let result = await obtemProcessos(connection, qt_regs_num, anoMes); 
+    //console.log(result);
+
+    let row;
+
+    // Arquivo que vai armazenar as pecas processadas.
+    let nomeArquivoIdsProc = 'lista_pecas_proc_' + anoMes + '.txt';
+    await fs.writeFileSync(nomeArquivoIdsProc, ''); //Cria o arquivo.
+
+    while ((row = await result.resultSet.getRow())) {
+            // console.log(row);
+            contador += 1;
+
+            console.log(`> (${contador}) - (${row.ANO_MES})\tProcessando ${row.CNJ} - id doc: ${row.ID_DOCUMENTO}`);
+            console.log(`\ttmttp_dk: ${row.MTPP_DK} - sigilo: ${row.SIGILO} `);
+            console.log(`\tfolha virt: ${row.NR_FOLHA_VIRT} - dt peca: ${date.format(row.DT_PECA,'DD/MM/YYYY')}`);  
+
+            let resultado = await solicitaAtualizarPeca(row.CNJ, row.ID_DOCUMENTO);
+            console.log(`\t${resultado}\n`);
+
+            //fs.appendFileSync('lista_pecas_proc' + anoMes + '.txt', row.MTPP_DK + ',\n'); // Sincrono
+            fs.appendFileSync(nomeArquivoIdsProc, row.MTPP_DK + ' ,\n'); //Grava no arquivo de ids, assincronamente.
+
+            await delay(pausa_num);
+    };
+}
+
 async function run() {
 
   let connection;
@@ -108,40 +162,19 @@ async function run() {
             }
         );
 
-    console.log(`Ano-mes selecionado: ${p_ano_mes}`); 
-    console.log(`Quant Max de Processos a processar: ${qt_regs_num} - pausa entre processos: ${pausa_num} ms`);
+    console.log(`Ano-mes inicial selecionado: ${p_ano_mes_ini}`); 
+    console.log(`Ano-mes final selecionado: ${p_ano_mes_fim}`); 
+    console.log(`Quant Max de Processos a processar (por mes): ${qt_regs_num} - pausa entre processos: ${pausa_num} ms`);
 
     const horInicio = date.format(new Date(),'ddd, DD/MM/YYYY HH:mm:ss');
     console.log("Horario de inicio:\t " + horInicio + "\n");
 
-    // Utilizar este estilo de loop for para garantir processamento sincrono.
+    // Criando a lista de meses a serem processados
+    listaAnosMeses = generateMonthlyDates(p_ano_mes_fim, p_ano_mes_ini);
+    print(listaAnosMeses);
 
-    //console.log(">>> Processando o Aviso: " + aviso);
-    let result = await obtemProcessos(connection, qt_regs_num, p_ano_mes); 
-    //console.log(result);
-
-    let row;
-    // let row = result.resultSet;
-
-    // Arquivo que vai armazenar as pecas processadas.
-    let nomeArquivoIdsProc = 'lista_pecas_proc_' + p_ano_mes + '.txt';
-    await fs.writeFileSync(nomeArquivoIdsProc, ''); //Cria o arquivo.
-
-    while ((row = await result.resultSet.getRow())) {
-            // console.log(row);
-            contador += 1;
-
-            console.log(`> (${contador}) - (${row.ANO_MES})\tProcessando ${row.CNJ} - id doc: ${row.ID_DOCUMENTO}`);
-            console.log(`\ttmttp_dk: ${row.MTPP_DK} - sigilo: ${row.SIGILO} `);
-            console.log(`\tfolha virt: ${row.NR_FOLHA_VIRT} - dt peca: ${date.format(row.DT_PECA,'DD/MM/YYYY')}`);  
-
-            let resultado = await solicitaAtualizarPeca(row.CNJ, row.ID_DOCUMENTO);
-            console.log(`\t${resultado}\n`);
-
-            //fs.appendFileSync('lista_pecas_proc' + p_ano_mes + '.txt', row.MTPP_DK + ',\n'); // Sincrono
-            fs.appendFileSync(nomeArquivoIdsProc, row.MTPP_DK + ' ,\n'); //Grava no arquivo de ids, assincronamente.
-
-            await delay(pausa_num);
+    for (const anoMes of listaAnosMeses) {
+       await processaAnoMes(anoMes);
     };
 
     let horFim = date.format(new Date(),'ddd, DD/MM/YYYY HH:mm:ss');
@@ -191,7 +224,7 @@ async function solicitaAtualizarPeca(cnj, id_documento) {
     return await getData(cnj);
 }
 
-async function obtemProcessos(connection, numRegistros, p_ano_mes) {
+async function obtemProcessos(connection, numRegistros, anoMes) {
 
   var result = await connection.execute(
     `
@@ -230,7 +263,7 @@ async function obtemProcessos(connection, numRegistros, p_ano_mes) {
       AND ROWNUM <= :pNumRegistros 
       order by tmpp.MTPP_DT_PESQ_ASSINATURAS desc 
  `,
-     {pNumRegistros: numRegistros, pAnoMes: p_ano_mes},  
+     {pNumRegistros: numRegistros, pAnoMes: anoMes},  
      {
         resultSet: true,
         outFormat: oracledb.OUT_FORMAT_OBJECT
