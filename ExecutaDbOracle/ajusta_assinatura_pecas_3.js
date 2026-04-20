@@ -124,7 +124,7 @@ async function run() {
     // let row = result.resultSet;
 
     // Arquivo que vai armazenar as pecas processadas.
-    let nomeArquivoIdsProc = 'lista_pecas_proc' + p_ano_mes + '.txt';
+    let nomeArquivoIdsProc = 'lista_pecas_proc_' + p_ano_mes + '.txt';
     await fs.writeFile(nomeArquivoIdsProc, ''); //Cria o arquivo.
 
     while ((row = await result.resultSet.getRow())) {
@@ -139,7 +139,7 @@ async function run() {
             console.log(`\t${resultado}\n`);
 
             //fs.appendFileSync('lista_pecas_proc' + p_ano_mes + '.txt', row.MTPP_DK + ',\n'); // Sincrono
-            fs.appendFile('lista_pecas_proc' + p_ano_mes + '.txt', row.MTPP_DK + ',\n'); //Grava no arquivo de ids, assincronamente.
+            fs.appendFile(nomeArquivoIdsProc, row.MTPP_DK + ' ,\n'); //Grava no arquivo de ids, assincronamente.
 
             await delay(pausa_num);
     };
