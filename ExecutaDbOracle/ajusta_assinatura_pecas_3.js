@@ -103,18 +103,37 @@ let pausa_num = parseInt(p_pausa);
 // let arrProc = [];
 
 // Gera uma lista de todos os anos-mes, da final para o inicial.
-function generateMonthlyDates(endDateStr, startDateStr) {
-  const result = [];
-  
-  let current = new Date(endDateStr + '-01');
-  const start = new Date(startDateStr + '-01');
-  
-  while (!datefns.isAfter(start, current)) {
-    result.push(datefns.format(current, 'yyyy-MM'));
-    current = datefns.subMonths(current, 1);
+function generateMonthlyDates(startDateStr, endDateStr) {
+  const datePattern = /^\d{4}-\d{2}$/;
+
+  if (!datePattern.test(startDateStr) || !datePattern.test(endDateStr)) {
+    throw new Error("Invalid date format. Use 'YYYY-MM'.");
   }
-  
-  return result;
+
+  const [startYear, startMonth] = startDateStr.split("-").map(Number);
+  const [endYear, endMonth] = endDateStr.split("-").map(Number);
+
+  if (startMonth < 1 || startMonth > 12 || endMonth < 1 || endMonth > 12) {
+    throw new Error("Invalid month value. Month must be between 01 and 12.");
+  }
+
+  if (startDateStr > endDateStr) {
+    throw new Error("startDateStr must not be greater than endDateStr.");
+  }
+
+  const dates = [];
+  let year = endYear;
+  let month = endMonth;
+
+  while (year > startYear || (year === startYear && month >= startMonth)) {
+    dates.push(`${year}-${String(month).padStart(2, "0")}`);
+    month--;
+    if (month === 0) {
+      month = 12;
+      year--;
+    }
+  }
+  return dates;
 }
 
 async function processaAnoMes(connection, anoMes) {
@@ -171,7 +190,7 @@ async function run() {
     console.log("Horario de inicio:\t " + horInicio + "\n");
 
     // Criando a lista de meses a serem processados
-    listaAnosMeses = generateMonthlyDates(p_ano_mes_fim, p_ano_mes_ini);
+    listaAnosMeses = generateMonthlyDates(p_ano_mes_ini, p_ano_mes_fim);
     console.log(listaAnosMeses);
 
     for (const anoMes of listaAnosMeses) {
