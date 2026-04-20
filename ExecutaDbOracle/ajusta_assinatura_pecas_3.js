@@ -236,7 +236,7 @@ async function obtemProcessos(connection, numRegistros, anoMes) {
           tmpp.MTPP_IN_SIGILO   	      as SIGILO         ,
           tmpp.MTPP_NR_FOLHA_VIRTUAL    as NR_FOLHA_VIRT  ,
           tmpp.MTPP_DT_DOCUMENTO        as DT_PECA        ,
-          to_char(tmpp.MTPP_DT_DOCUMENTO, 'YYYY-MM') AS ANO_MES
+          to_char(tmpp.MTPP_DT_PESQ_ASSINATURAS, 'YYYY-MM') AS ANO_MES
       FROM TJRJ_METADADOS_PECAS_PROCESSO tmpp 
       WHERE 1=1 
       AND	tmpp.MTPA_DT_EXCLUSAO_PECA IS NULL 
