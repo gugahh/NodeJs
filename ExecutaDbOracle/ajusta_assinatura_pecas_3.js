@@ -156,7 +156,7 @@ async function processaAnoMes(connection, anoMes) {
             contador += 1;
 
             console.log(`> (${contador}) - (${row.ANO_MES})\tProcessando ${row.CNJ} - id doc: ${row.ID_DOCUMENTO}`);
-            console.log(`\ttmttp_dk: ${row.MTPP_DK} - sigilo: ${row.SIGILO} `);
+            console.log(`\ttmttp_dk: ${row.MTPP_DK} - sigilo: ${row.SIGILO} - bytes: ${row.NUM_BYTES}`);
             console.log(`\tfolha virt: ${row.NR_FOLHA_VIRT} - dt peca: ${date.format(row.DT_PECA,'DD/MM/YYYY')}`);  
 
             let resultado = await solicitaAtualizarPeca(row.CNJ, row.ID_DOCUMENTO);
@@ -256,6 +256,7 @@ async function obtemProcessos(connection, numRegistros, anoMes) {
           tmpp.MTPP_IN_SIGILO   	      as SIGILO         ,
           tmpp.MTPP_NR_FOLHA_VIRTUAL    as NR_FOLHA_VIRT  ,
           tmpp.MTPP_DT_DOCUMENTO        as DT_PECA        ,
+          tmpp.MTPP_NR_BYTES_PDF        as NUM_BYTES      ,
           to_char(tmpp.MTPP_DT_PESQ_ASSINATURAS, 'YYYY-MM') AS ANO_MES
       FROM TJRJ_METADADOS_PECAS_PROCESSO tmpp 
       WHERE 1=1 
@@ -280,8 +281,10 @@ async function obtemProcessos(connection, numRegistros, anoMes) {
         FROM TJRJ_METADADOS_PECAS_ASSINAT ASS 
         WHERE ASS.MSPA_MTPP_DK = tmpp.MTPP_DK 
       )
+      -- Excluindo os PDFs gigantes
+      and (tmpp.MTPP_NR_BYTES_PDF is null OR tmpp.MTPP_NR_BYTES_PDF <= 16000000)
       AND ROWNUM <= :pNumRegistros 
-      order by tmpp.MTPP_DT_PESQ_ASSINATURAS desc 
+      order by tmpp.MTPP_DK desc 
  `,
      {pNumRegistros: numRegistros, pAnoMes: anoMes},  
      {
