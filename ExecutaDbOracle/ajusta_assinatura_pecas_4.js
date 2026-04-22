@@ -239,7 +239,7 @@ async function obtemPecas(connection, umLote) {
         i9: umLote[9] 
      },  
      {
-        resultSet: false,  //Nao necessita de paginacao
+        resultSet: true,
         outFormat: oracledb.OUT_FORMAT_OBJECT
       }
   );
