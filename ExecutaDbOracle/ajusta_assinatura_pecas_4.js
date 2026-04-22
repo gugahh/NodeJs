@@ -18,10 +18,10 @@ console.log("Processa as pecas unicamente de um array interno.");
 console.log("Util para quando conhecemos de antemão os IDs de pecas a serem re-processadas.");
 
 // Servico -  Correcao:
-const urlUpdatePecas = 'http://d-extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento';
+// const urlUpdatePecas = 'http://d-extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento';
 
 // Producao
-// const urlUpdatePecas = "http://extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento";
+const urlUpdatePecas = "http://extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento";
 
 
 // Obtendo definicoes de Banco de Dados a partir da linha de comando.
@@ -139,8 +139,7 @@ async function run() {
     console.log("Horario de inicio:\t " + horInicio + "\n");
 
     arrLotes = fc_particiona_10_itens(arrProc);
-    console.log('Lotes a processar: ' + arrLotes);
-
+    console.log('Lote a processar: ' + arrLotes);
 
     for (const umLote of arrLotes) {
       // console.log('Processando o lote: ' + umLote);
@@ -162,7 +161,6 @@ async function run() {
       }
     }
   }
-
   
 } // Run 
 
