@@ -62,6 +62,14 @@ def extract_errors(input_path: str, output_path: str) -> None:
 if __name__ == "__main__":
     # Optionally accept file paths as command-line arguments:
     #   python extract_errors.py [input_file] [output_file]
+    print("Starting error extraction...")
     inp = sys.argv[1] if len(sys.argv) > 1 else INPUT_FILE
-    out = sys.argv[2] if len(sys.argv) > 2 else OUTPUT_FILE
+    if len(sys.argv) > 2 : 
+        out = sys.argv[2] 
+    elif len(sys.argv) > 1:
+        # Usuario passou um nome de arquivo de Log. Vamos reaproveitar esse nome
+        # para o arquivo de saida.
+        out = 'erros_' + inp.replace('.log', '') + '.txt'
+    else: OUTPUT_FILE
+    print(f"Using input file: {inp} and output file: {out}")
     extract_errors(inp, out)
