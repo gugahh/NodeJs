@@ -4,6 +4,7 @@ oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 const fetch = require('cross-fetch');
 const date = require('date-and-time');
 const util = require('util')
+const fs = require('fs');
 
 
 var myArgs = process.argv.slice(2);
@@ -14,6 +15,8 @@ var p_usuario;
 var p_senha;
 
 console.log("\n===== Solicita atualizacao de Assinatura de Pecas do DCP (2) =====");
+console.log("- Obtem as pecas incluidas no trimestre informado (critério: data de inclusão).");
+console.log("- Nao reprocessa as peças já assinadas.");
 
 // Servico -  Correcao:
 // const urlUpdatePecas = 'http://d-extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento';
@@ -55,7 +58,7 @@ if (isNaN(parseInt(p_qt_registros))) {
     let qt_regs_num = parseInt(p_qt_registros);
 
     if (qt_regs_num < 1 || qt_regs_num > 1000000) {
-        console.log("ERRO: O valor do parametro p_qt_registros deve ser entre 1  e 100000.");
+        console.log("ERRO: O valor do parametro p_qt_registros deve ser entre 1  e 1000000.");
         return;
     }
 }
@@ -88,8 +91,6 @@ let contador = 0;
 // console.log("\nString de Conexão: \t" + p_conn_string);
 // console.log("Usuario: \t\t" + p_usuario + "\nSenha: \t\t\t(Foi atribuída)."  + "\n");
 
-// Array com os processos a serem, bem, processados.
-// let arrProc = [];
 
 async function run() {
 
@@ -106,15 +107,14 @@ async function run() {
         );
 
     console.log(`Trimestre selecionado: ${p_trimestre}`);
-    console.log(`Quant Max de Processos a processar: ${qt_regs_num} - pausa entre processos: ${pausa_num} ms`);
+    console.log(`Quant Max de Peças a processar: ${qt_regs_num} - pausa entre Peças: ${pausa_num} ms`);
 
     const horInicio = date.format(new Date(),'ddd, DD/MM/YYYY HH:mm:ss');
     console.log("Horario de inicio:\t " + horInicio + "\n");
 
     // Utilizar este estilo de loop for para garantir processamento sincrono.
 
-    //console.log(">>> Processando o Aviso: " + aviso);
-    let result = await obtemProcessos(connection, qt_regs_num, p_trimestre);
+    let result = await obtemPecas(connection, qt_regs_num, p_trimestre);
     //console.log(result);
 
     let row;
@@ -127,6 +127,8 @@ async function run() {
             console.log(`> (${contador}) - (${row.TRIMESTRE_DT_INC})\tProcessando ${row.CNJ} - id doc: ${row.ID_DOCUMENTO}`);
             console.log(`\ttmttp_dk: ${row.MTPP_DK} - sigilo: ${row.SIGILO} `);
             console.log(`\tfolha virt: ${row.NR_FOLHA_VIRT} - dt peca: ${date.format(row.DT_PECA,'DD/MM/YYYY')}`);  
+
+            fs.appendFileSync('lista_pecas_proc.txt', row.MTPP_DK + ',\n');
 
             let resultado = await solicitaAtualizarPeca(row.CNJ, row.ID_DOCUMENTO);
             console.log(`\t${resultado}\n`);
@@ -181,7 +183,7 @@ async function solicitaAtualizarPeca(cnj, id_documento) {
     return await getData(cnj);
 }
 
-async function obtemProcessos(connection, numRegistros, trimestre) {
+async function obtemPecas(connection, numRegistros, trimestre) {
 
   var result = await connection.execute(
     `

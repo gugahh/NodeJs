@@ -5,7 +5,6 @@ const fetch = require('cross-fetch');
 const date = require('date-and-time');
 const util = require('util')
 const fs = require('fs');
-const datefns = require('date-fns');
 
 var myArgs = process.argv.slice(2);
 // console.log('myArgs: ', myArgs);
@@ -16,8 +15,10 @@ var p_senha;
 
 console.log("\n===== Solicita atualizacao de Assinatura de Pecas do DCP (3) =====");
 console.log("Versao exploratoria - processa X pecas (param) de um determinado ano/mes final ate um ano/mes inicial, e grava os IDs num arquivo texto.");
-console.log("Posteriormente serao verificados quais meses possuem Peças invalidas (pesquisadas, ");
-console.log("porem cujas assinaturas nao haviam sido gravadas.");
+console.log("O Parametro ano-mes se refere ao ano e mes da data de pesquisa de assinaturas.");
+console.log("Posteriormente serao verificados quais meses possuem Peças invalidas ");
+console.log("(pesquisadas, porem cujas assinaturas nao haviam sido gravadas).");
+console.log("Serve tambem para reprocessar todas as assinaturas de um ou mais meses.");
 
 // Servico -  Correcao:
 // const urlUpdatePecas = 'http://d-extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento';
@@ -25,6 +26,8 @@ console.log("porem cujas assinaturas nao haviam sido gravadas.");
 // Producao
 const urlUpdatePecas = "http://extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento";
 
+// Meses que nao se deseja processar nunca mais (lista de excessoes):
+let arrIndesejados = ['2026-04', '2026-03',];
 
 // Obtendo definicoes de Banco de Dados a partir da linha de comando.
 if (!Array.isArray(myArgs) || myArgs.length != 7) {
@@ -40,7 +43,7 @@ if (!Array.isArray(myArgs) || myArgs.length != 7) {
      "\t- pausa entre registros (em millisegundos) \n" +
     "como parametros.");
   
-  console.error("* Exemplo: node ajusta_assinatura_pecas.js 10.0.251.32:1521/CORR userX senhaX 2026-04 2024-01 10 10");
+  console.error("* Exemplo: node ajusta_assinatura_pecas_3.js 10.0.251.32:1521/CORR userX senhaX 2024-01 2026-01 10000 10");
   console.error("* Obs: Nao utilize espacos na definicao da String de Conexao.\n");
   process.exit();
 }
@@ -99,8 +102,16 @@ let pausa_num = parseInt(p_pausa);
 // console.log("\nString de Conexão: \t" + p_conn_string);
 // console.log("Usuario: \t\t" + p_usuario + "\nSenha: \t\t\t(Foi atribuída)."  + "\n");
 
-// Array com os processos a serem, bem, processados.
-// let arrProc = [];
+/**
+ * Remove os itens de arrayExcessoes que estejam contidos em arrayOrig
+ */
+function removeFromArray(arrayOrig, arrayExcessoes) {
+    arrayExcessoes.forEach(element => {
+        idxItem = arrayOrig.indexOf(element);
+        // console.log(`Removendo: ${element}`);
+        if (idxItem > -1) arrayOrig.splice(idxItem, 1);
+    }); 
+}
 
 // Gera uma lista de todos os anos-mes, da final para o inicial.
 function generateMonthlyDates(startDateStr, endDateStr) {
@@ -182,16 +193,18 @@ async function run() {
             }
         );
 
-    console.log(`Ano-mes inicial selecionado: ${p_ano_mes_ini}`); 
-    console.log(`Ano-mes final selecionado: ${p_ano_mes_fim}`); 
-    console.log(`Quant Max de Processos a processar (por mes): ${qt_regs_num} - pausa entre processos: ${pausa_num} ms`);
-
-    const horInicio = date.format(new Date(),'ddd, DD/MM/YYYY HH:mm:ss');
-    console.log("Horario de inicio:\t " + horInicio + "\n");
+    console.log(`Anos-meses selecionados: de ${p_ano_mes_ini} a ${p_ano_mes_fim}.`); 
+    console.log(`Qt Max de Pecas a processar (por mes): ${qt_regs_num}; pausa entre peças: ${pausa_num} ms`);
+    console.log(`Lista de meses indesejados (não processar): ${arrIndesejados}`);
 
     // Criando a lista de meses a serem processados
     listaAnosMeses = generateMonthlyDates(p_ano_mes_ini, p_ano_mes_fim);
-    console.log(listaAnosMeses);
+    removeFromArray(listaAnosMeses, arrIndesejados)
+
+    console.log(`Lista de meses a processar (já tratada): ${listaAnosMeses}`);
+    const horInicio = date.format(new Date(),'ddd, DD/MM/YYYY HH:mm:ss');
+
+    console.log("Horario de inicio:\t " + horInicio + "\n");
 
     for (const anoMes of listaAnosMeses) {
        await processaAnoMes(connection, anoMes);
@@ -267,7 +280,6 @@ async function obtemProcessos(connection, numRegistros, anoMes) {
         MTPP_TTDL_DK NOT IN(185,45,130,145,39,50,9999,53,90) AND 
         MTPP_NR_PROTOCOLO_PETICAO IS NOT NULL AND 
         MTPP_CD_IDENTIFICADOR_AVISO IS NULL AND 
-        -- (MTPP_DT_PESQ_ASSINATURAS IS NULL OR MTPP_DT_PESQ_ASSINATURAS<MTPP_DT_DOWNLOAD+.0833333333333333333333333333333333333333) AND
         MTPP_DT_DOWNLOAD IS NOT NULL AND
         MTPA_DT_EXCLUSAO_PECA IS NULL AND
         LENGTH(TRIM(MTPP_DS_DESCRICAO_DOCUMENTO))>1 AND
