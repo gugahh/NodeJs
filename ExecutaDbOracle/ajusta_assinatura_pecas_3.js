@@ -27,7 +27,10 @@ console.log("Serve tambem para reprocessar todas as assinaturas de um ou mais me
 const urlUpdatePecas = "http://extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento";
 
 // Meses que nao se deseja processar nunca mais (lista de excessoes):
-let arrIndesejados = ['2026-04', '2026-03',];
+let arrMesesIndesejados = ['2026-04', '2026-03',];
+
+// Lista de Processos que se deseja ignorar (nunca obtem sucesso nas suas peças).
+let arrProcsRejeitados = ['0232438-73.2012.8.19.0001',]
 
 // Obtendo definicoes de Banco de Dados a partir da linha de comando.
 if (!Array.isArray(myArgs) || myArgs.length != 7) {
@@ -170,6 +173,12 @@ async function processaAnoMes(connection, anoMes) {
             console.log(`\ttmttp_dk: ${row.MTPP_DK} - sigilo: ${row.SIGILO} - bytes: ${row.NUM_BYTES}`);
             console.log(`\tfolha virt: ${row.NR_FOLHA_VIRT} - dt peca: ${date.format(row.DT_PECA,'DD/MM/YYYY')}`);  
 
+            if (arrProcsRejeitados.indexOf(row.CNJ) > -1) {
+              //Encontrou um dos processos rejeitados. Ignorando!
+              console.log('\n\t** Este processo está na lista dos REJEITADOS. Ignorando-0.**\n');
+              continue;
+            }
+
             let resultado = await solicitaAtualizarPeca(row.CNJ, row.ID_DOCUMENTO);
             console.log(`\t${resultado}\n`);
 
@@ -195,11 +204,11 @@ async function run() {
 
     console.log(`Anos-meses selecionados: de ${p_ano_mes_ini} a ${p_ano_mes_fim}.`); 
     console.log(`Qt Max de Pecas a processar (por mes): ${qt_regs_num}; pausa entre peças: ${pausa_num} ms`);
-    console.log(`Lista de meses indesejados (não processar): ${arrIndesejados}`);
+    console.log(`Lista de meses indesejados (não processar): ${arrMesesIndesejados}`);
 
     // Criando a lista de meses a serem processados
     listaAnosMeses = generateMonthlyDates(p_ano_mes_ini, p_ano_mes_fim);
-    removeFromArray(listaAnosMeses, arrIndesejados)
+    removeFromArray(listaAnosMeses, arrMesesIndesejados)
 
     console.log(`Lista de meses a processar (já tratada): ${listaAnosMeses}`);
     const horInicio = date.format(new Date(),'ddd, DD/MM/YYYY HH:mm:ss');
