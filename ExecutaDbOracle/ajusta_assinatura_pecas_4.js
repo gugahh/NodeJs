@@ -14,7 +14,7 @@ var p_usuario;
 var p_senha;
 
 console.log("\n===== Solicita atualizacao de Assinatura de Pecas do DCP (4) ('RESCALDO') =====");
-console.log("Processa as pecas unicamente de um array interno.");
+console.log("Processa as pecas obtidas de um arquivo texto (contendo os IDs).");
 console.log("Util para quando conhecemos de antemão os IDs de pecas a serem re-processadas.");
 
 // Servico -  Correcao:
@@ -25,7 +25,7 @@ const urlUpdatePecas = "http://extrair-assinatura-digital-peca-dcp.apps.ocpn.mpr
 
 
 // Obtendo definicoes de Banco de Dados a partir da linha de comando.
-if (!Array.isArray(myArgs) || myArgs.length != 4) {
+if (!Array.isArray(myArgs) || myArgs.length != 5) {
   console.error("\n====Erro!====");
   
   console.error("* Devem ser informados os parametros: \n" + 
@@ -33,9 +33,10 @@ if (!Array.isArray(myArgs) || myArgs.length != 4) {
      "\t- usuario \n" +
      "\t- senha \n" +
      "\t- pausa entre registros (em millisegundos) \n" +
+     "\t- nome do arquivo contendo os IDs das pecas \n" +
     "como parametros.");
   
-  console.error("* Exemplo: node ajusta_assinatura_pecas_4.js 10.0.251.32:1521/CORR userX senhaX 10");
+  console.error("* Exemplo: node ajusta_assinatura_pecas_4.js 10.0.251.32:1521/CORR userX senhaX 10 idlist.txt");
   console.error("* Obs: Nao utilize espacos na definicao da String de Conexao.\n");
   process.exit();
 }
@@ -44,6 +45,7 @@ p_conn_string = myArgs[0];
 p_usuario = myArgs[1];
 p_senha = myArgs[2];
 p_pausa = myArgs[3];
+p_nm_arquivo_ids = myArgs[4];
 
 // Validando a pausa
 if (isNaN(parseInt(p_pausa))) {
@@ -64,21 +66,6 @@ let pausa_num = parseInt(p_pausa);
 // console.log("\nString de Conexão: \t" + p_conn_string);
 // console.log("Usuario: \t\t" + p_usuario + "\nSenha: \t\t\t(Foi atribuída)."  + "\n");
 
-// Array com os processos a serem (re) processados.
-let arrProc = [
-  90742761445 ,
-  90742753791 ,
-  90742753789 ,
-  90741461374 ,
-  90740421634 ,
-  90740123108 ,
-  90740159981 ,
-  90740060818 ,
-  90740060822 ,
-  90740060961 ,
-  90740132887 ,
-  90740172856 ,
-];
 
 // Gera, a partir de um array, uma lista de arrays com 10 itens;
 // Quando o segmento final tiver menos de 10 itens, o que falta sera preenchido com zeros.
@@ -88,6 +75,28 @@ function fc_particiona_10_itens(umArr) {
     const chunk = umArr.slice(i, i + 10);
     while (chunk.length < 10) chunk.push(0);
     result.push(chunk);
+  }
+  return result;
+}
+
+// Abre um arquivo texto do fs, e obtem os ids de pecas, retornando-os
+// em um array.
+function fc_read_from_int_list(filename) {
+  if (!fs.existsSync(filename)) {
+    console.error(`Erro: Arquivo nao encontrado: "${filename}"`);
+    process.exit(1);
+  }
+
+  const result = [];
+  const content = fs.readFileSync(filename, 'utf8');
+  const lines = content.split('\n');
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    const match = trimmed.match(/^(\d+)\s*,?\s*$/);
+    if (match) {
+      result.push(parseInt(match[1], 10));
+    }
   }
   return result;
 }
@@ -136,18 +145,22 @@ async function run() {
         );
 
     const horInicio = date.format(new Date(),'ddd, DD/MM/YYYY HH:mm:ss');
-    console.log("Horario de inicio:\t " + horInicio + "\n");
+    console.log(`Horario de inicio:\t " ${horInicio} \n`);
 
-    arrLotes = fc_particiona_10_itens(arrProc);
-    console.log('Lote a processar: ' + arrLotes);
+    // Obtendo os ids do filesystem
+    arrPecasTotal = fc_read_from_int_list(p_nm_arquivo_ids);
+    console.log(`Qt de Pecas a processar:\t ${arrPecasTotal.length}\n`);
 
-    for (const umLote of arrLotes) {
-      // console.log('Processando o lote: ' + umLote);
+    arrEmLotes = fc_particiona_10_itens(arrPecasTotal);
+    console.log(`Qt de lotes a processar: ${arrLotes.length}`);
+
+    for (const umLote of arrEmLotes) {
+      console.log(`Processando o lote: ${umLote}`);
        await processaLote(connection, umLote);
     };
 
     let horFim = date.format(new Date(),'ddd, DD/MM/YYYY HH:mm:ss');
-    console.log("\nFinalizado as:\t " + horFim);
+    console.log(`\nFinalizado as: \t ${horFim}`);
     console.log("<<< ===== Todo o processamento finalizado. =====");
 
   } catch (err) {
