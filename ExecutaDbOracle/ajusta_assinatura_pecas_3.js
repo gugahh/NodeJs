@@ -155,7 +155,7 @@ async function processaAnoMes(connection, anoMes) {
     console.log('\n>>> Processando o Ano-Mes: ' + anoMes + '\n');
     let contador = 0;
 
-    let result = await obtemProcessos(connection, qt_regs_num, anoMes); 
+    let result = await obtemPecas(connection, qt_regs_num, anoMes); 
     //console.log(result);
 
     let row;
@@ -213,14 +213,14 @@ async function run() {
     console.log(`Lista de meses a processar (já tratada): ${listaAnosMeses}`);
     const horInicio = date.format(new Date(),'ddd, DD/MM/YYYY HH:mm:ss');
 
-    console.log("Horario de inicio:\t " + horInicio + "\n");
+    console.log(`Horario de inicio:\t " ${horInicio} \n`);
 
     for (const anoMes of listaAnosMeses) {
        await processaAnoMes(connection, anoMes);
     };
 
     let horFim = date.format(new Date(),'ddd, DD/MM/YYYY HH:mm:ss');
-    console.log("\nFinalizado as:\t " + horFim);
+    console.log(`\nFinalizado as: \t ${horFim}`);
     console.log("<<< ===== Todo o processamento finalizado. =====");
 
   } catch (err) {
@@ -266,7 +266,7 @@ async function solicitaAtualizarPeca(cnj, id_documento) {
     return await getData(cnj);
 }
 
-async function obtemProcessos(connection, numRegistros, anoMes) {
+async function obtemPecas(connection, numRegistros, anoMes) {
 
   var result = await connection.execute(
     `

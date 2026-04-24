@@ -34,7 +34,7 @@ function generateMonthlyDates(startDateStr, endDateStr) {
 
 // Example usage
 const end_date = '2026-12';
-const start_date = '2026-04';
+const start_date = '2025-11';
 
 const dates = generateMonthlyDates(start_date, end_date);
 console.log(dates);

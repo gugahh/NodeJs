@@ -23,6 +23,8 @@ console.log("Util para quando conhecemos de antemão os IDs de pecas a serem re-
 // Producao
 const urlUpdatePecas = "http://extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento";
 
+// Lista de Processos que se deseja ignorar (nunca obtem sucesso nas suas peças).
+let arrProcsRejeitados = ['0232438-73.2012.8.19.0001',]
 
 // Obtendo definicoes de Banco de Dados a partir da linha de comando.
 if (!Array.isArray(myArgs) || myArgs.length != 5) {
@@ -66,6 +68,16 @@ let pausa_num = parseInt(p_pausa);
 // console.log("\nString de Conexão: \t" + p_conn_string);
 // console.log("Usuario: \t\t" + p_usuario + "\nSenha: \t\t\t(Foi atribuída)."  + "\n");
 
+/**
+ * Remove os itens de arrayExcessoes que estejam contidos em arrayOrig
+ */
+function removeFromArray(arrayOrig, arrayExcessoes) {
+    arrayExcessoes.forEach(element => {
+        idxItem = arrayOrig.indexOf(element);
+        // console.log(`Removendo: ${element}`);
+        if (idxItem > -1) arrayOrig.splice(idxItem, 1);
+    }); 
+}
 
 // Gera, a partir de um array, uma lista de arrays com 10 itens;
 // Quando o segmento final tiver menos de 10 itens, o que falta sera preenchido com zeros.
@@ -120,6 +132,12 @@ async function processaLote(connection, umLote) {
             console.log(`> (${contador}) - \tProcessando ${row.CNJ} - id doc: ${row.ID_DOCUMENTO}`);
             console.log(`\ttmttp_dk: ${row.MTPP_DK} - sigilo: ${row.SIGILO} - bytes: ${row.NUM_BYTES}`);
             console.log(`\tfolha virt: ${row.NR_FOLHA_VIRT} - dt peca: ${date.format(row.DT_PECA,'DD/MM/YYYY')}`);  
+
+            if (arrProcsRejeitados.indexOf(row.CNJ) > -1) {
+              //Encontrou um dos processos rejeitados. Ignorando!
+              console.log('\n\t** Este processo está na lista dos REJEITADOS. Ignorando-0.**\n');
+              continue;
+            }
 
             let resultado = await solicitaAtualizarPeca(row.CNJ, row.ID_DOCUMENTO);
             console.log(`\t${resultado}\n`);
