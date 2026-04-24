@@ -119,7 +119,7 @@ function fc_read_from_int_list(filename) {
 
 async function processaLote(connection, umLote) {
 // Utilizar este estilo de loop for para garantir processamento sincrono.
-    console.log('\n>>> Processando o Lote: ' + umLote + '\n');
+    //console.log('\n>>> Processando o Lote: ' + umLote + '\n');
 
     let result = await obtemPecas(connection, umLote); 
     //console.log(result);
@@ -172,10 +172,13 @@ async function run() {
     console.log(`Qt de Pecas a processar:\t ${arrPecasTotal.length}\n`);
 
     arrEmLotes = fc_particiona_10_itens(arrPecasTotal);
-    console.log(`Qt de lotes a processar: ${arrEmLotes.length}`);
+    console.log(`Qt de lotes a processar:\t${arrEmLotes.length}`);
 
+    idxcontalotes = 0;
     for (const umLote of arrEmLotes) {
-      console.log(`Processando o lote: ${umLote}`);
+      idxcontalotes += 1;
+      console.log(`\n>>> Processando o lote (${idxcontalotes}): ${umLote}\n`);
+      //console.log(`Processando o lote: ${umLote}`);
        await processaLote(connection, umLote);
     };
 
@@ -254,6 +257,12 @@ async function obtemPecas(connection, umLote) {
         LENGTH(TRIM(MTPP_DS_DESCRICAO_DOCUMENTO))>1 AND
         REGEXP_LIKE (MTPP_DS_DESCRICAO_DOCUMENTO,'[A-Za-z]') 
 		  )
+      AND NOT EXISTS 
+      (
+        SELECT 1
+        FROM TJRJ_METADADOS_PECAS_ASSINAT ASS 
+        WHERE ASS.MSPA_MTPP_DK = tmpp.MTPP_DK 
+      )
       and tmpp.MTPP_DK in ( :i0, :i1, :i2, :i3, :i4, :i5, :i6, :i7, :i8, :i9 )
       -- Excluindo os PDFs gigantes
       and (tmpp.MTPP_NR_BYTES_PDF is null OR tmpp.MTPP_NR_BYTES_PDF <= 16000000)
