@@ -26,6 +26,9 @@ const urlUpdatePecas = "http://extrair-assinatura-digital-peca-dcp.apps.ocpn.mpr
 // Lista de Processos que se deseja ignorar (nunca obtem sucesso nas suas peças).
 let arrProcsRejeitados = ['0232438-73.2012.8.19.0001',]
 
+  // Vamos utilizar um contador unico, para todos os lotes.
+  let contador = 0;
+
 // Obtendo definicoes de Banco de Dados a partir da linha de comando.
 if (!Array.isArray(myArgs) || myArgs.length != 5) {
   console.error("\n====Erro!====");
@@ -117,7 +120,6 @@ function fc_read_from_int_list(filename) {
 async function processaLote(connection, umLote) {
 // Utilizar este estilo de loop for para garantir processamento sincrono.
     console.log('\n>>> Processando o Lote: ' + umLote + '\n');
-    let contador = 0;
 
     let result = await obtemPecas(connection, umLote); 
     //console.log(result);
@@ -170,7 +172,7 @@ async function run() {
     console.log(`Qt de Pecas a processar:\t ${arrPecasTotal.length}\n`);
 
     arrEmLotes = fc_particiona_10_itens(arrPecasTotal);
-    console.log(`Qt de lotes a processar: ${arrLotes.length}`);
+    console.log(`Qt de lotes a processar: ${arrEmLotes.length}`);
 
     for (const umLote of arrEmLotes) {
       console.log(`Processando o lote: ${umLote}`);
