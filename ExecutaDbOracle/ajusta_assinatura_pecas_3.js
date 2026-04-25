@@ -5,7 +5,7 @@ const fetch = require('cross-fetch');
 const date = require('date-and-time');
 const util = require('util')
 const fs = require('fs');
-const fc_produtividade = require('./includes/produtividade');
+const { fc_produtividade } = require('./includes/produtividade');
 
 var myArgs = process.argv.slice(2);
 // console.log('myArgs: ', myArgs);
