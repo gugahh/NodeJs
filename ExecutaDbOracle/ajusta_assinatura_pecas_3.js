@@ -166,9 +166,13 @@ async function processaAnoMes(connection, anoMes) {
 
     let row;
 
-    // Arquivo que vai armazenar as pecas processadas.
-    //let nomeArquivoIdsProc = './exploratorio/lista_pecas_proc_' + anoMes + '.txt';
-    await fs.writeFileSync(nomeArquivoIdsProc, '--- Ano-Mes: ' + anoMes + '---\n\n'); //Cria o arquivo.
+    // Arquivo que vai armazenar as pecas processadas. Cria, caso ainda nao exista.
+    let nomeArquivoIdsProc = './exploratorio/lista_pecas_proc_' + anoMes + '.txt';
+    if (!fs.existsSync(nomeArquivoIdsProc)) {
+        await fs.writeFileSync(nomeArquivoIdsProc, '--- Ano-Mes: ' + anoMes + '---\n\n'); //Cria o arquivo.
+    }
+    
+    console.log(`\t** Arquivo de saida: ${nomeArquivoIdsProc} \n`);
 
     while ((row = await result.resultSet.getRow())) {
             // console.log(row);
@@ -194,7 +198,7 @@ async function processaAnoMes(connection, anoMes) {
             //Exibe os dados parciais da produtividade do processamento.
             if (contadorGeral % 20 === 0) {
                let prod = fc_produtividade(contadorGeral, dataInicial, Date.now());
-               console.log(`\nProdutividade atual: ${prod.itemsPerMinute} peças/min (${prod.itemsPerHour} peças/h). \n`);
+               console.log(`\n\t** Produtividade atual: ${prod.itemsPerMinute} peças/min (${Math.round(prod.itemsPerHour)} peças/h). ** \n`);
             }
 
             await delay(pausa_num);
@@ -239,7 +243,7 @@ async function run() {
     console.log(`\tTotal de Peças Processadas: ${contadorGeral}`);
     if (contadorGeral > 0) {
         let prod = fc_produtividade(contadorGeral, dataInicial, Date.now());
-        console.log(`\tProdutividade total: ${prod.itemsPerMinute} peças/min (${prod.itemsPerHour} peças/h). \n`);
+        console.log(`\tProdutividade total: ${prod.itemsPerMinute} peças/min (${Math.round(prod.itemsPerHour)} peças/h). \n`);
     }
 
     console.log("<<< ===== Todo o processamento finalizado. =====");
