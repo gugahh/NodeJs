@@ -27,7 +27,7 @@ console.log("Serve tambem para reprocessar todas as assinaturas de um ou mais me
 const urlUpdatePecas = "http://extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento";
 
 // Meses que nao se deseja processar nunca mais (lista de excessoes):
-let arrMesesIndesejados = ['2026-04', '2026-03',];
+let arrMesesIndesejados = ['2026-04', '2026-03','2025-12','2025-11','2025-07'];
 
 // Lista de Processos que se deseja ignorar (nunca obtem sucesso nas suas peças).
 let arrProcsRejeitados = ['0232438-73.2012.8.19.0001',]
@@ -162,7 +162,7 @@ async function processaAnoMes(connection, anoMes) {
 
     // Arquivo que vai armazenar as pecas processadas.
     //let nomeArquivoIdsProc = './exploratorio/lista_pecas_proc_' + anoMes + '.txt';
-    //await fs.writeFileSync(nomeArquivoIdsProc, '--- Ano-Mes: ' + anoMes + '---\n\n'); //Cria o arquivo.
+    await fs.writeFileSync(nomeArquivoIdsProc, '--- Ano-Mes: ' + anoMes + '---\n\n'); //Cria o arquivo.
 
     while ((row = await result.resultSet.getRow())) {
             // console.log(row);
@@ -182,7 +182,7 @@ async function processaAnoMes(connection, anoMes) {
             let resultado = await solicitaAtualizarPeca(row.CNJ, row.ID_DOCUMENTO);
             console.log(`\t${resultado}\n`);
 
-            //fs.appendFileSync(nomeArquivoIdsProc, row.MTPP_DK + ' ,\n'); //Grava no arquivo de ids, assincronamente.
+            fs.appendFileSync(nomeArquivoIdsProc, row.MTPP_DK + ' ,\n'); //Grava no arquivo de ids, assincronamente.
 
             await delay(pausa_num);
     };
