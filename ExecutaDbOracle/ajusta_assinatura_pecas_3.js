@@ -198,7 +198,7 @@ async function processaAnoMes(connection, anoMes) {
             //Exibe os dados parciais da produtividade do processamento.
             if (contadorGeral % 20 === 0) {
                let prod = fc_produtividade(contadorGeral, dataInicial, Date.now());
-               console.log(`\n\t** Produtividade atual: ${prod.itemsPerMinute} peças/min (${Math.round(prod.itemsPerHour)} peças/h). ** \n`);
+               console.log(`\n\t** Produtividade atual: ${Math.round(prod.itemsPerMinute)} peças/min (${Math.round(prod.itemsPerHour)} peças/h). ** \n`);
             }
 
             await delay(pausa_num);
@@ -243,7 +243,7 @@ async function run() {
     console.log(`\tTotal de Peças Processadas: ${contadorGeral}`);
     if (contadorGeral > 0) {
         let prod = fc_produtividade(contadorGeral, dataInicial, Date.now());
-        console.log(`\tProdutividade total: ${prod.itemsPerMinute} peças/min (${Math.round(prod.itemsPerHour)} peças/h). \n`);
+        console.log(`\tProdutividade total: ${Math.round(prod.itemsPerMinute)} peças/min (${Math.round(prod.itemsPerHour)} peças/h). \n`);
     }
 
     console.log("<<< ===== Todo o processamento finalizado. =====");
