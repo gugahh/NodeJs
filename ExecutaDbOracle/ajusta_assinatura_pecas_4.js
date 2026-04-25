@@ -5,6 +5,7 @@ const fetch = require('cross-fetch');
 const date = require('date-and-time');
 const util = require('util')
 const fs = require('fs');
+const { fc_produtividade } = require('./includes/produtividade');
 
 var myArgs = process.argv.slice(2);
 // console.log('myArgs: ', myArgs);
@@ -27,7 +28,9 @@ const urlUpdatePecas = "http://extrair-assinatura-digital-peca-dcp.apps.ocpn.mpr
 let arrProcsRejeitados = ['0232438-73.2012.8.19.0001',]
 
   // Vamos utilizar um contador unico, para todos os lotes.
-  let contador = 0;
+let contadorGeral = 0;
+
+let dataInicial = Date.now(); // Tambem eh usada no calculo de produtividade.
 
 // Obtendo definicoes de Banco de Dados a partir da linha de comando.
 if (!Array.isArray(myArgs) || myArgs.length != 5) {
@@ -129,9 +132,9 @@ async function processaLote(connection, umLote) {
     while ((row = await result.resultSet.getRow())) {
             // console.log(row);
 
-            contador += 1;
+            contadorGeral += 1;
 
-            console.log(`> (${contador}) - \tProcessando ${row.CNJ} - id doc: ${row.ID_DOCUMENTO}`);
+            console.log(`> (${contadorGeral}) - \tProcessando ${row.CNJ} - id doc: ${row.ID_DOCUMENTO}`);
             console.log(`\ttmttp_dk: ${row.MTPP_DK} - sigilo: ${row.SIGILO} - bytes: ${row.NUM_BYTES}`);
             console.log(`\tfolha virt: ${row.NR_FOLHA_VIRT} - dt peca: ${date.format(row.DT_PECA,'DD/MM/YYYY')}`);  
 
@@ -144,7 +147,11 @@ async function processaLote(connection, umLote) {
             let resultado = await solicitaAtualizarPeca(row.CNJ, row.ID_DOCUMENTO);
             console.log(`\t${resultado}\n`);
 
-            //fs.appendFileSync(nomeArquivoIdsProc, row.MTPP_DK + ' ,\n'); //Grava no arquivo de ids, assincronamente.
+            //Exibe os dados parciais da produtividade do processamento.
+            if (contadorGeral % 20 === 0) {
+               let prod = fc_produtividade(contadorGeral, dataInicial, Date.now());
+               console.log(`\n\t** Produtividade atual: ${Math.round(prod.itemsPerMinute)} peças/min (${Math.round(prod.itemsPerHour)} peças/h). ** \n`);
+            }
 
             await delay(pausa_num);
     };
@@ -184,6 +191,14 @@ async function run() {
 
     let horFim = date.format(new Date(),'ddd, DD/MM/YYYY HH:mm:ss');
     console.log(`\nFinalizado as: \t ${horFim}`);
+
+    //Exibe os dados totais da produtividade do processamento.
+    console.log(`\tTotal de Peças Processadas: ${contadorGeral}`);
+    if (contadorGeral > 0) {
+        let prod = fc_produtividade(contadorGeral, dataInicial, Date.now());
+        console.log(`\tProdutividade total: ${Math.round(prod.itemsPerMinute)} peças/min (${Math.round(prod.itemsPerHour)} peças/h). \n`);
+    }
+
     console.log("<<< ===== Todo o processamento finalizado. =====");
 
   } catch (err) {
