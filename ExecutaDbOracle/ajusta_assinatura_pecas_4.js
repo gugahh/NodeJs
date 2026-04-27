@@ -25,7 +25,7 @@ console.log("Util para quando conhecemos de antemão os IDs de pecas a serem re-
 const urlUpdatePecas = "http://extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento";
 
 // Lista de Processos que se deseja ignorar (nunca obtem sucesso nas suas peças).
-let arrProcsRejeitados = ['0232438-73.2012.8.19.0001',]
+let arrProcsRejeitados = ['0232438-73.2012.8.19.0001','0175967-66.2014.8.19.0001']
 
   // Vamos utilizar um contador unico, para todos os lotes.
 let contadorGeral = 0;
@@ -172,7 +172,7 @@ async function run() {
         );
 
     const horInicio = date.format(new Date(),'ddd, DD/MM/YYYY HH:mm:ss');
-    console.log(`Horario de inicio:\t " ${horInicio} \n`);
+    console.log(`Horario de inicio:\t${horInicio} \n`);
 
     // Obtendo os ids do filesystem
     arrPecasTotal = fc_read_from_int_list(p_nm_arquivo_ids);

@@ -15,11 +15,11 @@ var p_usuario;
 var p_senha;
 
 console.log("\n===== Solicita atualizacao de Assinatura de Pecas do DCP (3) =====");
-console.log("Versao exploratoria - processa X pecas (param) de um determinado ano/mes final ate um ano/mes inicial, e grava os IDs num arquivo texto.");
-console.log("O Parametro ano-mes se refere ao ano e mes da data de pesquisa de assinaturas.");
-console.log("Posteriormente serao verificados quais meses possuem Peças invalidas ");
-console.log("(pesquisadas, porem cujas assinaturas nao haviam sido gravadas).");
-console.log("Serve tambem para reprocessar todas as assinaturas de um ou mais meses.");
+console.log("   Versao exploratoria - processa X pecas (param) de um determinado ano/mes final ate um ano/mes inicial, e grava os IDs num arquivo texto.");
+console.log("   O Parametro ano-mes se refere ao ano e mes da data de pesquisa de assinaturas.");
+console.log("   Posteriormente serao verificados quais meses possuem Peças invalidas ");
+console.log("   (pesquisadas, porem cujas assinaturas nao haviam sido gravadas).");
+console.log("   Serve tambem para reprocessar todas as assinaturas de um ou mais meses.");
 
 // Servico -  Correcao:
 // const urlUpdatePecas = 'http://d-extrair-assinatura-digital-peca-dcp.apps.ocpn.mprj.mp.br/dcp/processar/assinatura/peca/processo-iddocumento/?cnj/?id_documento';
@@ -31,7 +31,10 @@ const urlUpdatePecas = "http://extrair-assinatura-digital-peca-dcp.apps.ocpn.mpr
 let arrMesesIndesejados = ['2026-04', '2026-03','2025-12','2025-11','2025-07'];
 
 // Lista de Processos que se deseja ignorar (nunca obtem sucesso nas suas peças).
-let arrProcsRejeitados = ['0232438-73.2012.8.19.0001',]
+let arrProcsRejeitados = ['0232438-73.2012.8.19.0001','0175967-66.2014.8.19.0001']
+
+//Define se devemos ou nao gerar arquivo de saida, que lista IDs de pecas reprocessadas.
+let inGeraArqSaida = false;
 
 // Contator geral (para todos os anosMes), para calculo de produtividade.
 let contadorGeral = 0;
@@ -166,13 +169,14 @@ async function processaAnoMes(connection, anoMes) {
 
     let row;
 
-    // Arquivo que vai armazenar as pecas processadas. Cria, caso ainda nao exista.
-    let nomeArquivoIdsProc = './exploratorio/lista_pecas_proc_' + anoMes + '.txt';
-    if (!fs.existsSync(nomeArquivoIdsProc)) {
-        await fs.writeFileSync(nomeArquivoIdsProc, '--- Ano-Mes: ' + anoMes + '---\n\n'); //Cria o arquivo.
+    if (inGeraArqSaida) {
+      // Arquivo que vai armazenar as pecas processadas. Cria, caso ainda nao exista.
+      let nomeArquivoIdsProc = './exploratorio/lista_pecas_proc_' + anoMes + '.txt';
+      if (!fs.existsSync(nomeArquivoIdsProc)) {
+          await fs.writeFileSync(nomeArquivoIdsProc, '--- Ano-Mes: ' + anoMes + '---\n\n'); //Cria o arquivo.
+      }
+      console.log(`\t** Arquivo de saida: ${nomeArquivoIdsProc} \n`);
     }
-    
-    console.log(`\t** Arquivo de saida: ${nomeArquivoIdsProc} \n`);
 
     while ((row = await result.resultSet.getRow())) {
             // console.log(row);
@@ -193,7 +197,9 @@ async function processaAnoMes(connection, anoMes) {
             let resultado = await solicitaAtualizarPeca(row.CNJ, row.ID_DOCUMENTO);
             console.log(`\t${resultado}\n`);
 
-            fs.appendFileSync(nomeArquivoIdsProc, row.MTPP_DK + ' ,\n'); //Grava no arquivo de ids, assincronamente.
+            if (inGeraArqSaida) {
+              fs.appendFileSync(nomeArquivoIdsProc, row.MTPP_DK + ' ,\n'); //Grava no arquivo de ids, assincronamente.
+            }
 
             //Exibe os dados parciais da produtividade do processamento.
             if (contadorGeral % 20 === 0) {
@@ -230,7 +236,7 @@ async function run() {
     console.log(`Lista de meses a processar (já tratada): ${listaAnosMeses}`);
     const horInicio = date.format(new Date(),'ddd, DD/MM/YYYY HH:mm:ss');
 
-    console.log(`Horario de inicio:\t " ${horInicio} \n`);
+    console.log(`Horario de inicio:\t${horInicio} \n`);
 
     for (const anoMes of listaAnosMeses) {
        await processaAnoMes(connection, anoMes);
