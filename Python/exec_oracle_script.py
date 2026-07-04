@@ -1,4 +1,5 @@
 import cx_Oracle
+import re
 import sys
 
 def execute_sql_file(connection_string, username, password, sql_file):
@@ -12,8 +13,17 @@ def execute_sql_file(connection_string, username, password, sql_file):
     except FileNotFoundError:
         raise FileNotFoundError(f"File {sql_file} not found")
 
+    # Extract host, sid and port from connection string
+    match = re.search(r'(\S+):(\d+)/(\S+)', connection_string)
+    if match is None:
+        raise ValueError("Invalid connection string format. Expected: hostname:port/sid")
+    
+    host = match.group(1)
+    port = int(match.group(2))
+    sid = match.group(3)
+
     # Establish connection
-    dsn_tns = cx_Oracle.makedsn(connection_string)
+    dsn_tns = cx_Oracle.makedsn(host, port, sid=sid)
     conn = cx_Oracle.connect(username, password, dsn_tns)
 
     # Create cursor
