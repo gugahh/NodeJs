@@ -1,50 +1,43 @@
-import os
 import cx_Oracle
 import sys
 
-def main():
-    if len(sys.argv) != 5:
-        print("Usage: python execute_sql.py <connection_string> <username> <password> <sql_file>")
-        sys.exit(1)
-
-    connection_string = sys.argv[1]
-    username = sys.argv[2]
-    password = sys.argv[3]
-    sql_file = sys.argv[4]
-
-    if not os.path.exists(sql_file):
-        print(f"Error: File {sql_file} does not exist.")
-        sys.exit(1)
-
+def execute_sql_file(connection_string, username, password, sql_file):
+    # Validate parameters
+    if not connection_string or not username or not password or not sql_file:
+        raise ValueError("All parameters are required")
+        
     try:
-        connection = cx_Oracle.connect(username, password, connection_string)
-        cursor = connection.cursor()
-        
-        # Enable DBMS_OUTPUT to capture output
-        cursor.execute("BEGIN dbms_output.enable; END;")
-        
-        with open(sql_file, 'r') as file:
-            sql_script = file.read()
-            
+        with open(sql_file) as f:
+            sql_script = f.read()
+    except FileNotFoundError:
+        raise FileNotFoundError(f"File {sql_file} not found")
+
+    # Establish connection
+    dsn_tns = cx_Oracle.makedsn(connection_string)
+    conn = cx_Oracle.connect(username, password, dsn_tns)
+
+    # Create cursor
+    cursor = conn.cursor()
+    
+    try:
+        # Execute the script
         cursor.execute(sql_script)
         
-        # Fetch and print all captured output from DBMS_OUTPUT
-        while True:
-            output = cursor.var(cx_Oracle.STRING)
-            status = cursor.callfunc("DBMS_OUTPUT.GET_LINE", int, [output, 100])
-            if status == 0:
-                break
-            print(output.getvalue())
+        # Enable DBMS_OUTPUT
+        cursor.callproc('DBMS_OUTPUT.ENABLE')
         
-    except cx_Oracle.DatabaseError as e:
-        error, _ = e.args
-        print(f"Database error: {error.code} - {error.message}")
-        sys.exit(1)
+        # Fetch and print output
+        while True:
+            result = cursor.var(cx_Oracle.STRING).getvalue(0)
+            if not result:
+                break
+            print(result)
     finally:
-        if cursor:
-            cursor.close()
-        if connection:
-            connection.close()
+        cursor.close()
+        conn.close()
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) != 5:
+        raise ValueError("Invalid number of arguments. Usage: python script.py connection_string username password sql_file")
+    
+    execute_sql_file(*sys.argv[1:])
