@@ -33,8 +33,8 @@ def execute_sql_file(connection_string, username, password, sql_file):
         # Execute the script
         cursor.execute(sql_script)
         
-        # Enable DBMS_OUTPUT
-        cursor.callproc('DBMS_OUTPUT.ENABLE')
+        # Enable DBMS_OUTPUT with large buffer size
+        cursor.callproc('DBMS_OUTPUT.ENABLE', [1000000])
         
         # Fetch and print output
         while True:
